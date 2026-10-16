@@ -1,54 +1,204 @@
 <mujoco model="right_shadow_hand scene">
+
+  <!-- Load the Shadow Hand -->
   <include file="right_hand.xml"/>
 
   <statistic extent="0.3"/>
 
+
+  <!-- ================================================== -->
+  <!-- VISUAL SETTINGS                                    -->
+  <!-- ================================================== -->
+
   <visual>
+
     <rgba haze="0.15 0.25 0.35 1"/>
-    <quality shadowsize="512"/> <!-- reduced from 8192 to prevent my computer from crashing-->
-    <global azimuth="220" elevation="-30"/>
+
+    <!-- Reduced from 8192 to avoid excessive memory use -->
+    <quality shadowsize="512"/>
+
+    <global
+      azimuth="220"
+      elevation="-30"/>
+
   </visual>
 
+
+  <!-- ================================================== -->
+  <!-- ASSETS                                             -->
+  <!-- ================================================== -->
+
   <asset>
-    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
-    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
-      markrgb="0.8 0.8 0.8" width="300" height="300"/>
-    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+
+    <texture
+      type="skybox"
+      builtin="gradient"
+      rgb1="0.3 0.5 0.7"
+      rgb2="0 0 0"
+      width="512"
+      height="3072"/>
+
+    <texture
+      type="2d"
+      name="groundplane"
+      builtin="checker"
+      mark="edge"
+      rgb1="0.2 0.3 0.4"
+      rgb2="0.1 0.2 0.3"
+      markrgb="0.8 0.8 0.8"
+      width="300"
+      height="300"/>
+
+    <material
+      name="groundplane"
+      texture="groundplane"
+      texuniform="true"
+      texrepeat="5 5"
+      reflectance="0.2"/>
+
   </asset>
 
+
+  <!-- ================================================== -->
+  <!-- WORLD                                              -->
+  <!-- ================================================== -->
+
   <worldbody>
+
+    <!-- Lighting -->
     <light pos="0 0 1"/>
-    <light pos="0.3 0 1.5" dir="0 0 -1" directional="true"/>
-    <geom name="floor" pos="0 0 -0.1" size="0 0 0.05" type="plane" material="groundplane"/>
-    <body name="lower_chopstick" pos="0.34 -0.005 0.022">
+
+    <light
+      pos="0.3 0 1.5"
+      dir="0 0 -1"
+      directional="true"/>
+
+
+    <!-- Floor -->
+    <geom
+      name="floor"
+      pos="0 0 -0.1"
+      size="0 0 0.05"
+      type="plane"
+      material="groundplane"/>
+
+
+    <!-- ================================================== -->
+    <!-- CHOPSTICK ASSEMBLY                                 -->
+    <!-- ================================================== -->
+
+    <!--
+      This frame will be welded to the palm.
+
+      Because it has a freejoint, MuJoCo allows the equality
+      constraint below to control its pose relative to the hand.
+    -->
+
+    <body
+      name="chopstick_frame"
+      pos="0.34 -0.005 0.022">
+
       <freejoint/>
-      <geom
-        type="capsule"
-        fromto="-0.10 0 0  0.10 0 0"
-        size="0.004"
-        rgba="0.72 0.52 0.30 1"/>
+
+
+      <!-- ================================================ -->
+      <!-- LOWER CHOPSTICK                                  -->
+      <!-- ================================================ -->
+
+      <!--
+        No joint here.
+
+        Therefore the lower chopstick is rigidly attached
+        to chopstick_frame.
+      -->
+
+      <body name="lower_chopstick">
+
+        <geom
+          name="lower_chopstick_geom"
+          type="capsule"
+          fromto="-0.10 0 0  0.10 0 0"
+          size="0.004"
+          rgba="0.72 0.52 0.30 1"
+          friction="1.0 0.01 0.001"/>
+
+      </body>
+
+
+      <!-- ================================================ -->
+      <!-- UPPER CHOPSTICK                                  -->
+      <!-- ================================================ -->
+
+      <!--
+        Starts close to the lower chopstick and parallel to it.
+
+        x = same longitudinal position
+        y = offset sideways
+        z = slightly above lower chopstick
+      -->
+
+      <body
+        name="upper_chopstick"
+        pos="0 -0.025 0.008">
+
+
+        <!--
+          The upper chopstick gets ONE rotational DOF.
+
+          Pivot is near the back of the chopstick.
+
+          Because the chopstick lies along X,
+          rotating around Z lets it open/close mainly
+          in the XY plane.
+        -->
+
+        <joint
+          name="upper_chopstick_hinge"
+          type="hinge"
+          pos="-0.08 0 0"
+          axis="0 0 1"
+          range="-20 20"
+          damping="0.05"/>
+
+
+        <geom
+          name="upper_chopstick_geom"
+          type="capsule"
+          fromto="-0.10 0 0  0.10 0 0"
+          size="0.004"
+          rgba="0.72 0.52 0.30 1"
+          friction="1.0 0.01 0.001"/>
+
+      </body>
+
     </body>
-    <body name="upper_chopstick" pos="0.34 -0.040 0.030">
-      <freejoint/>
-      <geom
-        type="capsule"
-        fromto="-0.10 0 0  0.10 0 0"
-        size="0.004"
-        rgba="0.72 0.52 0.30 1"/>
-    </body>
+
   </worldbody>
+
+
+  <!-- ================================================== -->
+  <!-- CONSTRAINTS                                        -->
+  <!-- ================================================== -->
+
   <equality>
 
+    <!--
+      Attach the entire chopstick assembly to the palm.
+
+      Lower chopstick:
+          fixed relative to chopstick_frame
+
+      Upper chopstick:
+          follows chopstick_frame BUT can rotate around
+          upper_chopstick_hinge
+    -->
+
     <weld
-      name="lower_chopstick_grip"
-      body1="lower_chopstick"
+      name="chopstick_grip"
+      body1="chopstick_frame"
       body2="rh_palm"/>
 
-    <connect
-      name="upper_chopstick_pivot"
-      body1="upper_chopstick"
-      body2="rh_palm"
-      anchor="-0.08 0 0"/>
-
   </equality>
+
+
 </mujoco>
