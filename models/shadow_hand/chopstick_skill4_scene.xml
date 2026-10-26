@@ -1,0 +1,173 @@
+<mujoco model="shadow hand chopstick skill 4">
+
+  <include file="right_hand_skill4.xml"/>
+
+  <statistic extent="0.3"/>
+
+  <visual>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <quality shadowsize="512"/>
+    <global azimuth="220" elevation="-30"/>
+  </visual>
+
+  <asset>
+
+    <texture
+      type="skybox"
+      builtin="gradient"
+      rgb1="0.3 0.5 0.7"
+      rgb2="0 0 0"
+      width="512"
+      height="3072"/>
+
+    <texture
+      type="2d"
+      name="groundplane"
+      builtin="checker"
+      mark="edge"
+      rgb1="0.2 0.3 0.4"
+      rgb2="0.1 0.2 0.3"
+      markrgb="0.8 0.8 0.8"
+      width="300"
+      height="300"/>
+
+    <material
+      name="groundplane"
+      texture="groundplane"
+      texuniform="true"
+      texrepeat="5 5"
+      reflectance="0.2"/>
+
+  </asset>
+
+
+  <worldbody>
+
+    <light pos="0 0 1"/>
+
+    <light
+      pos="0.3 0 1.5"
+      dir="0 0 -1"
+      directional="true"/>
+
+    <geom
+      name="floor"
+      pos="0 0 -0.1"
+      size="0 0 0.05"
+      type="plane"
+      material="groundplane"/>
+
+
+    <body
+      name="chopstick_frame"
+      pos="0.34 -0.005 0.022"
+      euler="0 0 -20">
+
+      <freejoint/>
+
+
+      <body name="lower_chopstick">
+
+        <geom
+          name="lower_chopstick_geom"
+          type="capsule"
+          fromto="-0.10 0 0 0.10 0 0"
+          size="0.004"
+          rgba="0.72 0.52 0.30 1"
+          friction="2.0 0.02 0.002"/>
+
+        <site
+          name="lower_tip"
+          pos="0.10 0 0"
+          size="0.003"
+          rgba="0 1 0 1"/>
+
+      </body>
+
+
+      <body
+        name="upper_chopstick"
+        pos="0 -0.025 0.008">
+
+        <joint
+          name="upper_chopstick_hinge"
+          type="hinge"
+          pos="-0.08 0 0"
+          axis="0 0 1"
+          range="-20 20"
+          damping="0.05"/>
+
+        <geom
+          name="upper_chopstick_geom"
+          type="capsule"
+          fromto="-0.10 0 0 0.10 0 0"
+          size="0.004"
+          rgba="0.72 0.52 0.30 1"
+          friction="2.0 0.02 0.002"/>
+
+        <site
+          name="upper_tip"
+          pos="0.10 0 0"
+          size="0.003"
+          rgba="0 0.5 1 1"/>
+
+      </body>
+
+    </body>
+
+
+    <body
+      name="grasp_cube"
+      pos="0 0 1">
+
+      <freejoint
+        name="cube_freejoint"/>
+
+      <geom
+        name="grasp_cube_geom"
+        type="box"
+        size="0.005 0.005 0.005"
+        density="1000"
+        rgba="0.9 0.15 0.1 1"
+        friction="2.0 0.02 0.002"/>
+
+    </body>
+
+  </worldbody>
+
+
+  <actuator>
+
+    <position
+      name="upper_chopstick_servo"
+      joint="upper_chopstick_hinge"
+      kp="100"
+      gear="1"
+      ctrllimited="true"
+      ctrlrange="-0.349066 0.349066"
+      forcelimited="true"
+      forcerange="-10 10"/>
+
+    <position
+      name="hand_lift_servo"
+      joint="hand_lift_joint"
+      kp="40000"
+      gear="1"
+      ctrllimited="true"
+      ctrlrange="0 0.03"
+      forcelimited="true"
+      forcerange="-200 200"/>
+
+  </actuator>
+
+
+  <equality>
+
+    <weld
+      name="chopstick_grip"
+      body1="chopstick_frame"
+      body2="rh_palm"/>
+
+  </equality>
+
+</mujoco>
