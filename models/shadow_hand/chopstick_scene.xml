@@ -1,32 +1,14 @@
 <mujoco model="right_shadow_hand scene">
 
-  <!-- Load the Shadow Hand -->
   <include file="right_hand.xml"/>
 
   <statistic extent="0.3"/>
 
-
-  <!-- ================================================== -->
-  <!-- VISUAL SETTINGS                                    -->
-  <!-- ================================================== -->
-
   <visual>
-
     <rgba haze="0.15 0.25 0.35 1"/>
-
-    <!-- Reduced from 8192 to avoid excessive memory use -->
     <quality shadowsize="512"/>
-
-    <global
-      azimuth="220"
-      elevation="-30"/>
-
+    <global azimuth="220" elevation="-30"/>
   </visual>
-
-
-  <!-- ================================================== -->
-  <!-- ASSETS                                             -->
-  <!-- ================================================== -->
 
   <asset>
 
@@ -59,13 +41,8 @@
   </asset>
 
 
-  <!-- ================================================== -->
-  <!-- WORLD                                              -->
-  <!-- ================================================== -->
-
   <worldbody>
 
-    <!-- Lighting -->
     <light pos="0 0 1"/>
 
     <light
@@ -73,8 +50,6 @@
       dir="0 0 -1"
       directional="true"/>
 
-
-    <!-- Floor -->
     <geom
       name="floor"
       pos="0 0 -0.1"
@@ -87,70 +62,52 @@
     <!-- CHOPSTICK ASSEMBLY                                 -->
     <!-- ================================================== -->
 
-    <!--
-      This frame will be welded to the palm.
-
-      Because it has a freejoint, MuJoCo allows the equality
-      constraint below to control its pose relative to the hand.
-    -->
-
     <body
       name="chopstick_frame"
-      pos="0.34 -0.005 0.022">
+      pos="0.34 -0.005 0.022"
+      euler="0 0 -20">
 
       <freejoint/>
 
 
-      <!-- ================================================ -->
-      <!-- LOWER CHOPSTICK                                  -->
-      <!-- ================================================ -->
-
-      <!--
-        No joint here.
-
-        Therefore the lower chopstick is rigidly attached
-        to chopstick_frame.
-      -->
+      <!-- LOWER CHOPSTICK -->
 
       <body name="lower_chopstick">
 
         <geom
           name="lower_chopstick_geom"
           type="capsule"
-          fromto="-0.10 0 0  0.10 0 0"
+          fromto="-0.10 0 0 0.10 0 0"
           size="0.004"
           rgba="0.72 0.52 0.30 1"
-          friction="1.0 0.01 0.001"/>
+          friction="1.5 0.01 0.001"/>
+
+        <site
+          name="lower_actual_back"
+          pos="-0.05 0 0"
+          size="0.0025"
+          rgba="0 1 0 1"/>
+
+        <site
+          name="lower_actual_front"
+          pos="0.03 0 0"
+          size="0.0025"
+          rgba="0 1 0 1"/>
+
+        <site
+          name="lower_tip"
+          pos="0.10 0 0"
+          size="0.003"
+          rgba="0 1 0 1"/>
 
       </body>
 
 
-      <!-- ================================================ -->
-      <!-- UPPER CHOPSTICK                                  -->
-      <!-- ================================================ -->
-
-      <!--
-        Starts close to the lower chopstick and parallel to it.
-
-        x = same longitudinal position
-        y = offset sideways
-        z = slightly above lower chopstick
-      -->
+      <!-- UPPER CHOPSTICK -->
 
       <body
         name="upper_chopstick"
         pos="0 -0.025 0.008">
-
-
-        <!--
-          The upper chopstick gets ONE rotational DOF.
-
-          Pivot is near the back of the chopstick.
-
-          Because the chopstick lies along X,
-          rotating around Z lets it open/close mainly
-          in the XY plane.
-        -->
 
         <joint
           name="upper_chopstick_hinge"
@@ -160,20 +117,110 @@
           range="-20 20"
           damping="0.05"/>
 
-
         <geom
           name="upper_chopstick_geom"
           type="capsule"
-          fromto="-0.10 0 0  0.10 0 0"
+          fromto="-0.10 0 0 0.10 0 0"
           size="0.004"
           rgba="0.72 0.52 0.30 1"
-          friction="1.0 0.01 0.001"/>
+          friction="1.5 0.01 0.001"/>
+
+        <site
+          name="upper_actual_back"
+          pos="-0.05 0 0"
+          size="0.0025"
+          rgba="0 0.5 1 1"/>
+
+        <site
+          name="upper_actual_front"
+          pos="0.03 0 0"
+          size="0.0025"
+          rgba="0 0.5 1 1"/>
+
+        <site
+          name="upper_tip"
+          pos="0.10 0 0"
+          size="0.003"
+          rgba="0 0.5 1 1"/>
 
       </body>
+
+
+      <!-- GUIDE MARKERS -->
+
+      <site
+        name="lower_guide_back_center"
+        pos="-0.05 0 0"
+        size="0.002"
+        rgba="0 1 0 0.5"/>
+
+      <site
+        name="lower_guide_front_center"
+        pos="0.03 0 0"
+        size="0.002"
+        rgba="0 1 0 0.5"/>
+
+      <site
+        name="upper_guide_back_center"
+        pos="-0.05 -0.025 0.008"
+        size="0.002"
+        rgba="0 0.5 1 0.5"/>
+
+      <site
+        name="upper_guide_front_center"
+        pos="0.03 -0.025 0.008"
+        size="0.002"
+        rgba="0 0.5 1 0.5"/>
+
+    </body>
+
+
+    <!-- ================================================== -->
+    <!-- GRASP OBJECT                                       -->
+    <!-- ================================================== -->
+
+    <body
+      name="grasp_object"
+      pos="0.37211 -0.09541 0.02904">
+
+      <joint
+        name="object_vertical_joint"
+        type="slide"
+        axis="0 0 1"
+        range="0 0.06"
+        limited="true"
+        damping="0.10"/>
+
+      <geom
+        name="grasp_object_geom"
+        type="sphere"
+        size="0.002"
+        mass="0.001"
+        rgba="0.90 0.10 0.10 1"
+        friction="2.0 0.01 0.001"/>
 
     </body>
 
   </worldbody>
+
+
+  <!-- ================================================== -->
+  <!-- CHOPSTICK SERVO                                     -->
+  <!-- ================================================== -->
+
+  <actuator>
+
+    <position
+      name="upper_chopstick_servo"
+      joint="upper_chopstick_hinge"
+      kp="20"
+      gear="1"
+      ctrllimited="true"
+      ctrlrange="-0.349066 0.349066"
+      forcelimited="true"
+      forcerange="-2 2"/>
+
+  </actuator>
 
 
   <!-- ================================================== -->
@@ -182,23 +229,11 @@
 
   <equality>
 
-    <!--
-      Attach the entire chopstick assembly to the palm.
-
-      Lower chopstick:
-          fixed relative to chopstick_frame
-
-      Upper chopstick:
-          follows chopstick_frame BUT can rotate around
-          upper_chopstick_hinge
-    -->
-
     <weld
       name="chopstick_grip"
       body1="chopstick_frame"
       body2="rh_palm"/>
 
   </equality>
-
 
 </mujoco>
