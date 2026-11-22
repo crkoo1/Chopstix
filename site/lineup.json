@@ -1,0 +1,83 @@
+{
+  "_doc": "What the results page evaluates. chopstix.tools.report reads this, runs every entry on every setup it lists (deterministic policy, fixed seeds), and writes site/data/. Add a trained policy as an entry with its actor (and run directory, for its training curves).",
+  "setups": {
+    "hold": {
+      "label": "Hold under pushes",
+      "desc": "Palm locked 30 cm up, gravity on, random 0.03 N pushes on each stick every 0.1 s, 0.02 rad start-joint noise. 10 s.",
+      "env": {
+        "stage": "hold",
+        "hold_joint_noise": 0.02
+      },
+      "episodes": 32,
+      "clip_seeds": [
+        0
+      ]
+    },
+    "pick": {
+      "label": "Pick, carry and place",
+      "desc": "chops V4 stage C: the palm descends 5 cm onto a 30 mm cube, lifts it 6 cm, carries it 10 cm to B, lowers it, and the sticks must let go. 10.5 s.",
+      "env": {
+        "stage": "pick",
+        "hold_residual": 0.2,
+        "ball_cube": true,
+        "ball_radius": 0.015,
+        "ball_mass": 0.005,
+        "ball_friction": 2.0,
+        "stick_friction": 2.0,
+        "pick_approach": 0.05,
+        "pick_place": true,
+        "steps_per_episode": 210,
+        "hold_joint_noise": 0.02,
+        "w_hold_squeeze": 0.5,
+        "w_hold_no_contact": 1.0,
+        "hold_force_min": 0.05,
+        "w_pick_squeeze": 1.0,
+        "w_pick_stick_lost": 1.0,
+        "w_pick_drop": 10.0
+      },
+      "episodes": 32,
+      "clip_seeds": [
+        0
+      ]
+    }
+  },
+  "entries": [
+    {
+      "id": "scripted",
+      "label": "Scripted grip",
+      "from": "closed_v5_mj4",
+      "desc": "No policy: the fingers hold the MuJoCo grip and only the palm moves. The baseline every trained policy must beat.",
+      "actor": "zero",
+      "setups": [
+        "hold",
+        "pick"
+      ]
+    }
+  ],
+  "grip_labs": [
+    {
+      "file": "runs/griplab/closed_v5_mj_nolag.json",
+      "label": "First: closed_v5_mj",
+      "desc": "First MuJoCo grip, no finger lag. Older, shorter battery.",
+      "default": false
+    },
+    {
+      "file": "runs/griplab/closed_v5_mj2.json",
+      "label": "closed_v5_mj2",
+      "desc": "Firmer thumb and ring-finger pinch on the lower stick, 0.15 s finger lag. ~5 N on the index finger.",
+      "default": false
+    },
+    {
+      "file": "runs/griplab/closed_v5_mj3.json",
+      "label": "closed_v5_mj3",
+      "desc": "The mj2 pinch x1.5. ~8 N on the index finger.",
+      "default": false
+    },
+    {
+      "file": "runs/griplab/closed_v5_mj4.json",
+      "label": "closed_v5_mj4 (10 N)",
+      "desc": "Pinch x2 plus a light upper-stick pinch: ~10 N on the index finger.",
+      "default": true
+    }
+  ]
+}

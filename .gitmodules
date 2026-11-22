@@ -1,0 +1,3 @@
+[submodule "sr_common"]
+	path = sr_common
+	url = https://github.com/shadow-robot/sr_common.git
