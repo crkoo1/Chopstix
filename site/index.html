@@ -162,8 +162,12 @@ button.b[aria-pressed="true"] { border-color: var(--fg); background: var(--soft)
 .marks span { position: absolute; top: 0; width: 2px; height: 4px; }
 #t { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; margin: 0; accent-color: var(--fg); }
 .speed { display: flex; gap: 4px; }
-.side { display: grid; gap: 12px; min-width: 0; }
-.clips { display: grid; gap: 6px; }
+.side { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; }
+.side > .panel { flex: none; }
+.side > .panel.eps { flex: 1 1 auto; min-height: 140px; display: flex !important; flex-direction: column; }
+.clips { position: relative; display: grid; gap: 6px; align-content: start; overflow-y: auto; min-height: 0; flex: 1 1 auto;
+  overscroll-behavior: contain; scrollbar-width: thin; padding-right: 4px; margin-right: -4px; }
+@media (max-width: 900px) { .clips { max-height: 360px; } }
 .clip { text-align: left; display: grid; gap: 2px; padding: 8px 10px; }
 .clip small { color: var(--muted); font-size: 12px; }
 .stats { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 13px; }
@@ -322,7 +326,7 @@ button.b[aria-pressed="true"] { border-color: var(--fg); background: var(--soft)
         </div>
       </div>
       <aside class="side">
-        <div class="panel" style="display:grid;gap:8px"><h3>Episode</h3><div class="clips" id="clips"></div></div>
+        <div class="panel eps" style="display:grid;gap:8px"><h3>Episode</h3><div class="clips" id="clips"></div></div>
         <div class="panel" style="display:grid;gap:8px"><h3>At this moment</h3><dl class="stats" id="stats"></dl></div>
       </aside>
     </div>
@@ -809,7 +813,8 @@ function setView(v) {
 }
 function renderClipList() {
   if (!R) return;
-  const list = R.clips.filter(c => c.setup === SETUP), lab = R.clips.filter(c => c.setup === "griplab");
+  const rank = c => R.entries.findIndex(e => e.id === c.entry);  // newest run first, its best attempt on top
+  const list = R.clips.filter(c => c.setup === SETUP).sort((a, b) => rank(b) - rank(a) || (b.best ? 1 : 0) - (a.best ? 1 : 0)), lab = R.clips.filter(c => c.setup === "griplab");
   const btn = c => { const e = R.entries.find(z => z.id === c.entry);
     const st = c.success ? ["--good", c.setup === "griplab" ? "holds" : "success"] : c.terminated ? ["--critical", "ended early"] : ["--warn", "failed"];
     return `<button class="b clip" data-id="${c.id}" aria-pressed="false"><span class="pill" style="--c:var(${st[0]})">${st[1]}</span>
@@ -861,5 +866,22 @@ function loop(now) {
   const pending = document.querySelector('.clip[aria-pressed="true"]')?.dataset.id || R.clips.find(c => c.setup === SETUP)?.id;
   if (pending) await loadClip(pending);
   resize(); requestAnimationFrame(loop);
+})();
+// the episode list is as tall as the 3D view and scrolls inside itself (side by side only; stacked it gets a fixed max height)
+(() => {
+  const stage = document.getElementById('stage'), side = document.querySelector('.replay .side');
+  const wide = window.matchMedia('(min-width: 901px)');
+  const fit = () => { side.style.height = wide.matches ? stage.offsetHeight + 'px' : ''; };
+  new ResizeObserver(fit).observe(stage);
+  wide.addEventListener('change', fit);
+  fit();
+  // keep the selected episode in view when it changes
+  const list = document.getElementById('clips');
+  new MutationObserver(() => {  // scroll only the list, never the page
+    const el = list.querySelector('.clip[aria-pressed="true"]');
+    if (!el) return;
+    if (el.offsetTop < list.scrollTop) list.scrollTop = el.offsetTop - 4;
+    else if (el.offsetTop + el.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = el.offsetTop + el.offsetHeight - list.clientHeight + 4;
+  }).observe(list, { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
 })();
 </script>

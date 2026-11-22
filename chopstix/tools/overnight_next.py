@@ -234,8 +234,13 @@ def refine(rnd: int, ex: ProcessPoolExecutor, center: dict | None, closed: str =
 # ---------------------------------------------------------------- training
 def add_to_page(setup_id: str, setup: dict, entry: dict):
     p = ROOT / "site" / "lineup.json"
-    spec = json.loads(p.read_text(encoding="utf-8"))
-    spec["setups"][setup_id] = setup
+    spec = json.loads(p.read_text(encoding="utf-8-sig"))
+    same = [k for k, v in spec["setups"].items() if v.get("env") == setup["env"]]  # same test -> same tab, so runs sit side by side
+    if same:
+        entry["setups"] = [same[0] if s == setup_id else s for s in entry["setups"]]
+        setup_id = same[0]
+    else:
+        spec["setups"][setup_id] = setup
     for e in spec["entries"]:
         if e["id"] == "scripted" and setup_id not in e["setups"]:
             e["setups"].append(setup_id)

@@ -72,6 +72,11 @@ class SimCfg:
     solref: list[float] = field(default_factory=lambda: [0.02, 1.0])
     solimp: list[float] = field(default_factory=lambda: [0.9, 0.95, 0.001, 0.5, 2.0])
     margin: float = 0.0
+    # Stiffer contacts for the cube (stick-cube via solmix, table-cube via the table's own params): with the shared
+    # solref/solimp a 5 g cube squeezed by the hand let a stick sink 11 mm into it and itself sink 10 mm into the table;
+    # these bring both under 2 mm. Hand-stick contacts (the grip) keep solref/solimp above.
+    object_solref: list[float] = field(default_factory=lambda: [0.01, 1.0])
+    object_solimp: list[float] = field(default_factory=lambda: [0.99, 0.999, 0.001, 0.5, 2.0])
     # Props.
     stick_shape: str = "mesh"  # "mesh" (exact tapered stick) or "capsule" (mean radius)
     stick_mass: float = CHOPSTICK_MASS
@@ -190,6 +195,11 @@ def build_model(cfg: SimCfg) -> mujoco.MjModel:
             type=mujoco.mjtGeom.mjGEOM_BOX if cfg.object == "cube" else mujoco.mjtGeom.mjGEOM_SPHERE,
             size=[cfg.object_size] * 3, rgba=[0.9, 0.15, 0.1, 1],
         )  # fmt: skip
+        obj = spec.geom("object")
+        obj.solref, obj.solimp, obj.solmix = cfg.object_solref, cfg.object_solimp, 1000.0  # its params win against a stick
+        for g in spec.worldbody.geoms:  # the table (priority 1, so its params decide a table-cube contact)
+            if g.type == mujoco.mjtGeom.mjGEOM_PLANE:
+                g.solref, g.solimp = cfg.object_solref, cfg.object_solimp
     return spec.compile()
 
 

@@ -39,6 +39,37 @@
       "clip_seeds": [
         0
       ]
+    },
+    "s1_hold": {
+      "label": "Hold under noise",
+      "desc": "Palm 30 cm up, gravity, 0.1 N pushes every 0.1 s, 0.02 rad start noise, palm wobble up to +-5 deg (2 Hz) and shake up to 10 m/s2 (3 Hz). 10 s.",
+      "env": {
+        "stage": "hold",
+        "hold_grip": "closed_v5_mj3",
+        "hold_joint_noise": 0.02,
+        "hold_push": 0.1,
+        "hold_wobble": 5,
+        "hold_shake": 10
+      },
+      "episodes": 32,
+      "clip_seeds": [
+        0
+      ]
+    },
+    "s2_openclose": {
+      "label": "Open/close on command",
+      "desc": "The command moves the grip between open and closed (random goals, speeds and dwells); tips must follow, sticks held. 0.02 N pushes.",
+      "env": {
+        "stage": "hold",
+        "hold_grip": "closed_v5_mj3_open68mm_g_makis240",
+        "hold_grip_closed": "closed_v5_mj3_sq35_makis240",
+        "hold_joint_noise": 0.02,
+        "hold_push": 0.02
+      },
+      "episodes": 32,
+      "clip_seeds": [
+        0
+      ]
     }
   },
   "entries": [
@@ -50,7 +81,69 @@
       "actor": "zero",
       "setups": [
         "hold",
-        "pick"
+        "pick",
+        "s1_hold",
+        "s2_openclose"
+      ]
+    },
+    {
+      "id": "s1_hold",
+      "label": "Stage 1: hold under noise",
+      "from": "closed_v5_mj3",
+      "desc": "PPO from scratch on closed_v5_mj3.",
+      "actor": "runs/train/s1_hold/actor_best.pt",
+      "run": "runs/train/s1_hold",
+      "setups": [
+        "hold",
+        "s1_hold"
+      ]
+    },
+    {
+      "id": "s2_openclose",
+      "label": "Stage 2: open/close on command",
+      "from": "closed_v5_mj3_open68mm_g_makis240",
+      "desc": "From s1_hold's policy; open closed_v5_mj3_open68mm_g_makis240, closed closed_v5_mj3_sq35_makis240.",
+      "actor": "runs/train/s2_openclose/actor_best.pt",
+      "run": "runs/train/s2_openclose",
+      "setups": [
+        "hold",
+        "s2_openclose"
+      ]
+    },
+    {
+      "id": "s2_openclose_v2",
+      "label": "Stage 2 (new PPO settings): open/close on command",
+      "from": "closed_v5_mj3_open68mm_g_makis240",
+      "desc": "Continued from s2_openclose's best with desired_kl 0.02, entropy 0.005, batch 1792, 3 epochs.",
+      "actor": "runs/train/s2_openclose_v2/actor_best.pt",
+      "run": "runs/train/s2_openclose_v2",
+      "setups": [
+        "hold",
+        "s2_openclose"
+      ]
+    },
+    {
+      "id": "s1_hold95",
+      "label": "Stage 1 at 95%: hold under noise",
+      "from": "closed_v5_mj3",
+      "desc": "Continued from s1_hold's best; stops at 95%.",
+      "actor": "runs/train/s1_hold95/actor_best.pt",
+      "run": "runs/train/s1_hold95",
+      "setups": [
+        "hold",
+        "s1_hold"
+      ]
+    },
+    {
+      "id": "s2_openclose_b",
+      "label": "Stage 2 (again): open/close on command",
+      "from": "closed_v5_mj3_open68mm_g_makis240",
+      "desc": "From s1_hold95's policy; open closed_v5_mj3_open68mm_g_makis240, closed closed_v5_mj3_sq35_makis240.",
+      "actor": "runs/train/s2_openclose_b/actor_best.pt",
+      "run": "runs/train/s2_openclose_b",
+      "setups": [
+        "hold",
+        "s2_openclose"
       ]
     }
   ],
