@@ -78,6 +78,24 @@
       "label": "closed_v5_mj4 (10 N)",
       "desc": "Pinch x2 plus a light upper-stick pinch: ~10 N on the index finger.",
       "default": true
+    },
+    {
+      "file": "runs/griplab/closed_v5_mj4_open46mm_extend.json",
+      "label": "Open: 46mm_extend (from closed_v5_mj4)",
+      "desc": "Tips 17.5 -> 45.5 mm, back to 35.2 mm when closed again.",
+      "open": true
+    },
+    {
+      "file": "runs/griplab/closed_v5_mj2_open127mm_extend.json",
+      "label": "Open: 127mm_extend (from closed_v5_mj2)",
+      "desc": "Tips 22.9 -> 127.1 mm, back to 35.3 mm when closed again.",
+      "open": true
+    },
+    {
+      "file": "runs/griplab/closed_v5_mj3_open61mm_rand25.json",
+      "label": "Open: 61mm_rand25 (from closed_v5_mj3)",
+      "desc": "Tips 15.8 -> 61.2 mm, back to 34.4 mm when closed again.",
+      "open": true
     }
   ]
 }

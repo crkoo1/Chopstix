@@ -85,7 +85,7 @@
   "actuator_timeconst": 0.15
  },
  "made_by": "chopstix.tools.open_search from closed_v5_mj3: direction makis, size 2.0",
- "pairs_with": "closed_v5_mj3",
+ "pairs_with": "closed_v5_mj3_sq40",
  "open_search": {
   "name": "makis",
   "size": 2.0,
@@ -109,5 +109,6 @@
   "closes_back": true,
   "ok": true,
   "jitter_pass": 0.875
- }
+ },
+ "pairs_with_original": "closed_v5_mj3"
 }
