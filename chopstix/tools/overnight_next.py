@@ -232,6 +232,13 @@ def refine(rnd: int, ex: ProcessPoolExecutor, center: dict | None, closed: str =
 
 
 # ---------------------------------------------------------------- training
+def _json_or_str(v: str):
+    try:
+        return json.loads(v)
+    except ValueError:
+        return v
+
+
 def add_to_page(setup_id: str, setup: dict, entry: dict):
     p = ROOT / "site" / "lineup.json"
     spec = json.loads(p.read_text(encoding="utf-8-sig"))
@@ -265,7 +272,7 @@ def train(name: str, env: list[str], label: str, desc: str, setup_label: str, se
                 time.sleep(60)
                 if not added and (run_dir / "actor_best.pt").exists():
                     env_d = dict(kv.split("=", 1) for kv in env)
-                    env_d = {k: json.loads(v) if v.replace(".", "", 1).replace("-", "", 1).isdigit() else v for k, v in env_d.items()}
+                    env_d = {k: _json_or_str(v) for k, v in env_d.items()}  # as chopstix.train reads --env values
                     add_to_page(name, {"label": setup_label, "desc": setup_desc, "env": env_d, "episodes": 32, "clip_seeds": [0]},
                                 {"id": name, "label": label, "from": env_d.get("hold_grip"), "desc": desc,
                                  "actor": f"{rel}/actor_best.pt", "run": rel, "setups": ["hold", name]})  # fmt: skip

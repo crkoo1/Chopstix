@@ -98,6 +98,12 @@ class ChopsticksEnvCfg:
     pick_approach: float = 0.05
     pick_lift_height: float = 0.06
     pick_back: float = 0.022
+    pick_push: float = 0.0  # N: random pushes on each stick during "pick" too (as hold_push, every hold_push_every steps); 0 = off
+    pick_stick_pitch: float = 0.0  # deg below horizontal for the sticks' mean axis in the pick pose; 0 = the grip's own
+    pick_hand_flip: bool = False  # turn the hand 180 deg about the stick axis: back of the hand up, as a person holds chopsticks
+    pick_hand_tilt: float = 0.0  # deg: then pitch the hand so fingers and sticks point that much further down
+    pick_level_open: bool = False  # open/close pair: turn the hand so the tips open and close sideways (level), not up/down
+    pick_hand_roll: float = 0.0  # deg: then roll the hand about the sticks so the back of the hand faces further up
     pick_object_noise: float = 0.005
     pick_object_yaw_noise: float = 0.1
     pick_success_height: float = 0.04
@@ -278,15 +284,37 @@ class ChopsticksEnv(gym.Env):
         h = self._grips[1] if self._actuated else self._hold
         a, b, axis = pinch_points(h)
         sep = a - b
-        w_axis = h["palm_rot"] @ axis
+        if cfg.pick_level_open and self._actuated:  # level the direction the tips open in (open minus closed gap), not the
+            ao, bo, _ = pinch_points(self._hold)  # closed gap (nearly 0 when the closed tips touch: its direction is noise)
+            sep = (ao - bo) - sep
+        base = h["palm_rot"]
+        w_axis = base @ axis
         w_axis /= np.linalg.norm(w_axis)
-        w_sep = h["palm_rot"] @ sep
+        if cfg.pick_stick_pitch:  # tilt the hand (same heading) so the sticks point pick_stick_pitch deg below horizontal
+            th = np.radians(cfg.pick_stick_pitch)
+            head = np.array([w_axis[0], w_axis[1], 0.0]) / np.linalg.norm(w_axis[:2])
+            target = np.cos(th) * head + [0.0, 0.0, -np.sin(th)]
+            c = np.cross(w_axis, target)
+            ang = np.arctan2(np.linalg.norm(c), float(w_axis @ target))
+            base = rotvec_to_mat(c / max(np.linalg.norm(c), 1e-12) * ang) @ base
+            w_axis = target
+        w_sep = base @ sep
 
         def spun(t):
             return rotvec_to_mat(w_axis * t) @ w_sep
 
-        best = min(np.linspace(-np.pi, np.pi, 3601), key=lambda t: abs(spun(t)[2]) - 1e-3 * (spun(t) @ h["palm_rot"] @ sep))
-        self._pick_palm_rot = rotvec_to_mat(w_axis * best) @ h["palm_rot"]
+        best = min(np.linspace(-np.pi, np.pi, 3601), key=lambda t: abs(spun(t)[2]) - 1e-3 * (spun(t) @ base @ sep))
+        if cfg.pick_hand_flip:  # of the two level-sticks solutions, the one with the palm (its -y) facing the table
+            best = min((best, best + np.pi), key=lambda t: -(rotvec_to_mat(w_axis * t) @ base)[2, 1])
+        self._pick_palm_rot = rotvec_to_mat(w_axis * best) @ base
+        if cfg.pick_hand_roll:  # then roll about the stick axis, + towards the back of the hand facing up
+            r = rotvec_to_mat(w_axis * np.radians(cfg.pick_hand_roll))
+            if (rotvec_to_mat(w_axis * -np.radians(cfg.pick_hand_roll)) @ self._pick_palm_rot)[2, 1] > (r @ self._pick_palm_rot)[2, 1]:
+                r = r.T
+            self._pick_palm_rot = r @ self._pick_palm_rot
+        if cfg.pick_hand_tilt:  # pitch the whole hand (fingers and sticks) down about the horizontal across the sticks
+            head = np.array([w_axis[0], w_axis[1], 0.0]) / np.linalg.norm(w_axis[:2])
+            self._pick_palm_rot = rotvec_to_mat(np.cross([0.0, 0.0, 1.0], head) * np.radians(cfg.pick_hand_tilt)) @ self._pick_palm_rot
         if self._actuated:
             a, b, _ = pinch_points(self._hold)
         self._pick_spot = (a + b) / 2
@@ -357,8 +385,9 @@ class ChopsticksEnv(gym.Env):
         a = np.clip(np.asarray(action, dtype=np.float64), -1.0, 1.0).copy()
         a[:6] = 0.0  # the wrist is locked (hold) or scripted (pick): only the fingers are the policy's
         step = self._step_count
-        if cfg.stage == "hold" and step % max(1, cfg.hold_push_every) == 0:
-            self._push = self.np_random.uniform(-cfg.hold_push, cfg.hold_push, size=(2, 3))
+        push = cfg.hold_push if cfg.stage == "hold" else cfg.pick_push
+        if push and step % max(1, cfg.hold_push_every) == 0:
+            self._push = self.np_random.uniform(-push, push, size=(2, 3))
         if cfg.stage == "pick":
             self._pick_open = cfg.pick_place and self._pick_phase(step) in ("release", "retreat")
             sim.set_palm_target(self._pick_palm_target(step), self._pick_palm_rot)
@@ -373,7 +402,7 @@ class ChopsticksEnv(gym.Env):
         self._targets = np.clip(self._ref()["targets"] + residual * cfg.hold_residual, *sim.joint_limits.T)
         sim.set_targets(self._targets)
         self._prev_action = a
-        forces = {n: f for n, f in zip(STICKS, self._push)} if cfg.stage == "hold" else None
+        forces = {n: f for n, f in zip(STICKS, self._push)} if (cfg.stage == "hold" or cfg.pick_push) else None
         if cfg.stage == "hold" and (self._wobble or self._shake):
             pos0, rot0 = self._palm_base
             h = sim.model.opt.timestep

@@ -42,7 +42,7 @@ def run(job: dict) -> dict:
     n_ctrl = max(1, round(0.05 / dt))
     rng = np.random.default_rng(1000 + job["seed"])
     sim.reset()
-    sim.set_palm(PALM_POS, c["palm_rot"])
+    sim.set_palm(PALM_POS, np.array(job["palm_rot"]) if "palm_rot" in job else c["palm_rot"])  # e.g. the pick pose
     sim.set_joints(c["joints"])
     sim.set_targets(c["targets"])
     for n in STICKS:

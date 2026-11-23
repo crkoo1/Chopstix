@@ -70,6 +70,189 @@
       "clip_seeds": [
         0
       ]
+    },
+    "pick_oc": {
+      "label": "Pick and place, open/close grip",
+      "desc": "Palm comes down 5 cm with the grip open (68 mm), closes on a 30 mm cube, lifts it 6 cm, carries it 10 cm to B, lowers it and opens to let go. 10.5 s.",
+      "env": {
+        "stage": "pick",
+        "hold_residual": 0.1,
+        "ball_cube": true,
+        "ball_radius": 0.015,
+        "ball_mass": 0.005,
+        "ball_friction": 2.0,
+        "stick_friction": 2.0,
+        "pick_approach": 0.05,
+        "pick_place": true,
+        "steps_per_episode": 210,
+        "hold_joint_noise": 0.02,
+        "w_hold_squeeze": 0.5,
+        "w_hold_no_contact": 1.0,
+        "hold_force_min": 0.05,
+        "w_pick_squeeze": 1.0,
+        "w_pick_stick_lost": 1.0,
+        "w_pick_drop": 10.0,
+        "hold_grip": "closed_v5_mj3_open68mm_g_makis240",
+        "hold_grip_closed": "closed_v5_mj3_sq35_makis240"
+      },
+      "episodes": 32,
+      "clip_seeds": [
+        0
+      ]
+    },
+    "s3_pick15": {
+      "label": "Pick and place, 15\u00b0 sticks",
+      "desc": "Palm comes down 5 cm with the grip open, sticks 15 deg below horizontal, closes on a 30 mm cube, lifts it 6 cm, carries it 10 cm to B, lowers it and opens to let go. 10.5 s.",
+      "env": {
+        "stage": "pick",
+        "hold_residual": 0.1,
+        "ball_cube": true,
+        "ball_radius": 0.015,
+        "ball_mass": 0.005,
+        "ball_friction": 2.0,
+        "stick_friction": 2.0,
+        "pick_approach": 0.05,
+        "pick_place": true,
+        "steps_per_episode": 210,
+        "hold_joint_noise": 0.02,
+        "w_hold_squeeze": 0.5,
+        "w_hold_no_contact": 1.0,
+        "hold_force_min": 0.05,
+        "w_pick_squeeze": 1.0,
+        "w_pick_stick_lost": 1.0,
+        "w_pick_drop": 10.0,
+        "hold_grip": "closed_v5_mj3_open68mm_g_makis240",
+        "hold_grip_closed": "closed_v5_mj3_sq35_makis240",
+        "pick_stick_pitch": 15
+      },
+      "episodes": 32,
+      "clip_seeds": [
+        0
+      ]
+    },
+    "s3_pick_hard": {
+      "label": "Harder pick: 15\u00b0 sticks, cube \u00b11.5 cm / \u00b117\u00b0, 0.02 N pushes",
+      "desc": "As the 15\u00b0 pick and place (30 mm cube, 10 cm carry), but the cube starts anywhere within \u00b11.5 cm and \u00b117\u00b0 and random 0.02 N pushes hit each stick every 0.1 s. 10.5 s.",
+      "env": {
+        "stage": "pick",
+        "hold_residual": 0.1,
+        "ball_cube": true,
+        "ball_radius": 0.015,
+        "ball_mass": 0.005,
+        "ball_friction": 2.0,
+        "stick_friction": 2.0,
+        "pick_approach": 0.05,
+        "pick_place": true,
+        "steps_per_episode": 210,
+        "hold_joint_noise": 0.02,
+        "w_hold_squeeze": 0.5,
+        "w_hold_no_contact": 1.0,
+        "hold_force_min": 0.05,
+        "w_pick_squeeze": 1.0,
+        "w_pick_stick_lost": 1.0,
+        "w_pick_drop": 10.0,
+        "hold_grip": "closed_v5_mj3_open68mm_g_makis240",
+        "hold_grip_closed": "closed_v5_mj3_sq35_makis240",
+        "pick_stick_pitch": 15,
+        "pick_object_noise": 0.015,
+        "pick_object_yaw_noise": 0.3,
+        "pick_push": 0.02
+      },
+      "episodes": 32,
+      "clip_seeds": [
+        0
+      ]
+    },
+    "s3_pick25": {
+      "label": "Pick and place, 15\u00b0 sticks, 25 mm cube",
+      "desc": "Palm comes down 5 cm with the grip open, sticks 15 deg below horizontal, closes on a 25 mm cube, lifts it 6 cm, carries it 10 cm to B, lowers it and opens to let go. 10.5 s.",
+      "env": {
+        "stage": "pick",
+        "hold_residual": 0.1,
+        "ball_cube": true,
+        "ball_radius": 0.0125,
+        "ball_mass": 0.005,
+        "ball_friction": 2.0,
+        "stick_friction": 2.0,
+        "pick_approach": 0.05,
+        "pick_place": true,
+        "steps_per_episode": 210,
+        "hold_joint_noise": 0.02,
+        "w_hold_squeeze": 0.5,
+        "w_hold_no_contact": 1.0,
+        "hold_force_min": 0.05,
+        "w_pick_squeeze": 1.0,
+        "w_pick_stick_lost": 1.0,
+        "w_pick_drop": 10.0,
+        "hold_grip": "closed_v5_mj3_open68mm_g_makis240",
+        "hold_grip_closed": "closed_v5_mj3_sq35_makis240",
+        "pick_stick_pitch": 15
+      },
+      "episodes": 32,
+      "clip_seeds": [
+        0
+      ]
+    },
+    "s3_pick25r": {
+      "label": "Pick and place, 25 mm cube, 0.2 rad finger range",
+      "desc": "As the 25 mm pick and place (15\u00b0 sticks), but the policy may move each finger joint up to 0.2 rad from the grip (was 0.1). 10.5 s.",
+      "env": {
+        "stage": "pick",
+        "hold_residual": 0.2,
+        "ball_cube": true,
+        "ball_radius": 0.0125,
+        "ball_mass": 0.005,
+        "ball_friction": 2.0,
+        "stick_friction": 2.0,
+        "pick_approach": 0.05,
+        "pick_place": true,
+        "steps_per_episode": 210,
+        "hold_joint_noise": 0.02,
+        "w_hold_squeeze": 0.5,
+        "w_hold_no_contact": 1.0,
+        "hold_force_min": 0.05,
+        "w_pick_squeeze": 1.0,
+        "w_pick_stick_lost": 1.0,
+        "w_pick_drop": 10.0,
+        "hold_grip": "closed_v5_mj3_open68mm_g_makis240",
+        "hold_grip_closed": "closed_v5_mj3_sq35_makis240",
+        "pick_stick_pitch": 15
+      },
+      "episodes": 32,
+      "clip_seeds": [
+        0
+      ]
+    },
+    "s4_human": {
+      "label": "Human-style hold: pick and place, 25 mm cube",
+      "desc": "Back of the hand up; thumb, index and middle on the upper stick, thumb base, index base and ring finger on the lower; sticks 20 deg down. Palm comes down 5 cm with the grip open, closes on a 25 mm cube, lifts it 6 cm, carries it 10 cm to B, lowers it and opens. 10.5 s.",
+      "env": {
+        "stage": "pick",
+        "hold_residual": 0.1,
+        "ball_cube": true,
+        "ball_radius": 0.0125,
+        "ball_mass": 0.005,
+        "ball_friction": 2.0,
+        "stick_friction": 2.0,
+        "pick_approach": 0.05,
+        "pick_place": true,
+        "steps_per_episode": 210,
+        "hold_joint_noise": 0.02,
+        "w_hold_squeeze": 0.5,
+        "w_hold_no_contact": 1.0,
+        "hold_force_min": 0.05,
+        "w_pick_squeeze": 1.0,
+        "w_pick_stick_lost": 1.0,
+        "w_pick_drop": 10.0,
+        "hold_grip": "hg_1_open74mm",
+        "hold_grip_closed": "hg_1",
+        "pick_stick_pitch": 20,
+        "pick_hand_flip": true
+      },
+      "episodes": 32,
+      "clip_seeds": [
+        0
+      ]
     }
   },
   "entries": [
@@ -83,7 +266,13 @@
         "hold",
         "pick",
         "s1_hold",
-        "s2_openclose"
+        "s2_openclose",
+        "pick_oc",
+        "s3_pick15",
+        "s3_pick_hard",
+        "s3_pick25",
+        "s3_pick25r",
+        "s4_human"
       ]
     },
     {
@@ -119,7 +308,8 @@
       "run": "runs/train/s2_openclose_v2",
       "setups": [
         "hold",
-        "s2_openclose"
+        "s2_openclose",
+        "pick_oc"
       ]
     },
     {
@@ -144,6 +334,92 @@
       "setups": [
         "hold",
         "s2_openclose"
+      ]
+    },
+    {
+      "id": "s3_pick",
+      "label": "Stage 3: pick and place",
+      "from": "closed_v5_mj3_open68mm_g_makis240",
+      "desc": "From s2_openclose_v2's best; open/close grip on the pick-and-place path.",
+      "actor": "runs/train/s3_pick/actor_best.pt",
+      "run": "runs/train/s3_pick",
+      "setups": [
+        "hold",
+        "pick_oc"
+      ]
+    },
+    {
+      "id": "s3_pick15",
+      "label": "Stage 3b: pick and place, flatter sticks",
+      "from": "closed_v5_mj3_open68mm_g_makis240",
+      "desc": "From s3_pick's best; sticks 15 deg below horizontal.",
+      "actor": "runs/train/s3_pick15/actor_best.pt",
+      "run": "runs/train/s3_pick15",
+      "setups": [
+        "hold",
+        "s3_pick15",
+        "s3_pick_hard"
+      ]
+    },
+    {
+      "id": "s3_pick_hard",
+      "label": "Stage 3d: harder pick",
+      "from": "closed_v5_mj3_open68mm_g_makis240",
+      "desc": "From s3_pick15's best; cube \u00b11.5 cm / \u00b117\u00b0, 0.02 N pushes.",
+      "actor": "runs/train/s3_pick_hard/actor_best.pt",
+      "run": "runs/train/s3_pick_hard",
+      "setups": [
+        "hold",
+        "s3_pick_hard"
+      ]
+    },
+    {
+      "id": "s3_pick25",
+      "label": "Stage 3e: pick and place, 25 mm cube",
+      "from": "closed_v5_mj3_open68mm_g_makis240",
+      "desc": "From s3_pick15's best; 25 mm cube, sticks 15 deg.",
+      "actor": "runs/train/s3_pick25/actor_best.pt",
+      "run": "runs/train/s3_pick25",
+      "setups": [
+        "hold",
+        "s3_pick25",
+        "s3_pick25r"
+      ]
+    },
+    {
+      "id": "s3_pick25r",
+      "label": "Stage 3f: 25 mm cube, wider finger range",
+      "from": "closed_v5_mj3_open68mm_g_makis240",
+      "desc": "From s3_pick25's best; finger corrections up to 0.2 rad.",
+      "actor": "runs/train/s3_pick25r/actor_best.pt",
+      "run": "runs/train/s3_pick25r",
+      "setups": [
+        "hold",
+        "s3_pick25r"
+      ]
+    },
+    {
+      "id": "s3_pick25b",
+      "label": "Stage 3g: 25 mm cube, continued",
+      "from": "closed_v5_mj3_open68mm_g_makis240",
+      "desc": "From s3_pick25's best; 56-episode evals, 60-eval plateau.",
+      "actor": "runs/train/s3_pick25b/actor_best.pt",
+      "run": "runs/train/s3_pick25b",
+      "setups": [
+        "hold",
+        "s3_pick25"
+      ]
+    },
+    {
+      "id": "s4_human",
+      "label": "Stage 4: human-style hold, 25 mm cube",
+      "from": "hg_1_open74mm",
+      "desc": "From scratch; grip hg_1 (open/close test 95%).",
+      "actor": "runs/train/s4_human/actor_best.pt",
+      "run": "runs/train/s4_human",
+      "setups": [
+        "hold",
+        "s4_human"
       ]
     }
   ],

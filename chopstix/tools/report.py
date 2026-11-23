@@ -437,6 +437,10 @@ def main(argv=None):
                                "terminated": False, "length": len(info), "label": clip["label"]})  # fmt: skip
 
     now = time.strftime("%Y-%m-%dT%H:%M:%S%z")
+    for entry in spec["entries"]:  # when each policy was saved, so the page can show the newest first
+        actor = ROOT / entry["actor"] if entry["actor"] != "zero" else None
+        if actor and actor.exists():
+            entry["saved"] = time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(actor.stat().st_mtime))
     commit = git_commit()
     out = {"generated": now, "commit": commit, "dt": 0.05, "setups": {k: {kk: v[kk] for kk in ("label", "desc")} | {"stage": v["env"]["stage"]} for k, v in spec["setups"].items()},
            "entries": spec["entries"], "summaries": summaries, "curves": curves, "grip_checks": uniq, "clips": clip_index,

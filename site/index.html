@@ -8,7 +8,7 @@
 :root {
   --bg: #f3f4f1; --panel: #fcfcfb; --fg: #1b1d1a; --muted: #5d625a; --line: #dfe1dc; --soft: #eceee9;
   --stage: #e3e6e1; --stick: #b5652b;
-  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #6250d6; --s8: #e34948;
   --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --critical: #d03b3b; --neutral: #a7aaa2;
   --head: "Archivo", "Segoe UI", system-ui, sans-serif;
   --ui: "Inter", "Segoe UI", system-ui, sans-serif;
@@ -17,11 +17,11 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #121311; --panel: #1a1a19; --fg: #eeefea; --muted: #a4a89f; --line: #2c2e2a; --soft: #222420;
   --stage: #1d1f1c; --stick: #d98a4e;
-  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --neutral: #6c7068; color-scheme: dark } }
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #0ca30c; --s7: #9085e9; --s8: #e66767; --neutral: #6c7068; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #121311; --panel: #1a1a19; --fg: #eeefea; --muted: #a4a89f; --line: #2c2e2a; --soft: #222420;
   --stage: #1d1f1c; --stick: #d98a4e;
-  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --neutral: #6c7068; color-scheme: dark }
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #0ca30c; --s7: #9085e9; --s8: #e66767; --neutral: #6c7068; color-scheme: dark }
 
 body { background: var(--bg); color: var(--fg); font: 14px/1.55 var(--ui); }
 main { max-width: 1180px; margin: 0 auto; padding-block: 28px 56px;
@@ -84,6 +84,15 @@ svg .axis line, svg .grid line { stroke: var(--line); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); display: inline-block; }
+.run-toggles { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: center; }
+.run-toggles .chip { display: inline-flex; align-items: center; gap: 6px; font: 12px var(--ui); color: var(--fg); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.run-toggles .chip i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); display: inline-block; }
+.run-toggles .chip[aria-pressed="false"] { color: var(--muted); }
+.run-toggles .chip[aria-pressed="false"] i { background: transparent; box-shadow: inset 0 0 0 1.5px var(--c); }
+.run-toggles .chip[aria-pressed="true"] { border-color: var(--fg); }
+.run-toggles .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
+.run-toggles label { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); cursor: pointer; }
 
 .ms { display: grid; gap: 12px; }
 .ms-row { display: grid; grid-template-columns: minmax(120px, 220px) minmax(0, 1fr); gap: 4px 14px; align-items: center; }
@@ -352,7 +361,7 @@ const $ = id => document.getElementById(id);
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const pct = p => `${Math.round(100 * p)}%`;
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const SERIES = ["--s1", "--s2", "--s3", "--s4"];
+const SERIES = ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6", "--s7", "--s8"];
 const OUTCOME_COLOR = { success: "--good", shifted: "--warn", not_placed: "--warn", dropped: "--serious", never: "--neutral",
   knocked: "--critical", slipped: "--critical" };
 const PHASES = ["settle", "descend", "close", "lift", "carry", "lower", "release", "retreat"];
@@ -572,30 +581,63 @@ function renderSeries() {
   });
 }
 
+let TRAIN_SEL = null, TRAIN_EPS = false;  // which runs the training chart shows (remembered per viewer), faint episode lines
+try { TRAIN_SEL = JSON.parse(localStorage.getItem("chopstix-train-sel")); TRAIN_EPS = localStorage.getItem("chopstix-train-eps") === "1"; } catch {}
 function renderTraining() {
-  const runs = Object.entries(R.curves);
-  if (!runs.length) {
+  const all = Object.entries(R.curves);
+  if (!all.length) {
     $("training").innerHTML = `<div class="empty"><b style="color:var(--fg)">No training runs yet.</b>
       <span>Once a policy is trained, add it to <code>site/lineup.json</code> with its <code>actor</code> and <code>run</code>, then run <code>python -m chopstix.tools.report --note "…"</code>. Its evaluation curve appears here and it joins every chart above.</span></div>`;
     return;
   }
+  const entry = id => R.entries.find(z => z.id === id), when = id => entry(id)?.saved || "";
+  const order = all.map(([id]) => id).sort((a, b) => when(b).localeCompare(when(a)));  // newest first
+  if (!Array.isArray(TRAIN_SEL) || !TRAIN_SEL.some(id => R.curves[id])) TRAIN_SEL = order.slice(0, 1);
+  const runs = all.filter(([id]) => TRAIN_SEL.includes(id));
+  const chips = order.map(id => `<button class="chip" data-run="${id}" aria-pressed="${TRAIN_SEL.includes(id)}" style="--c:${colorOf(id)}"
+      title="${esc(entry(id)?.desc || "")}"><i></i>${esc(entry(id)?.label || id)}${when(id) ? ` <small style="color:var(--muted)">${fmtWhen(when(id))}</small>` : ""}</button>`).join("");
+  const bar = `<div class="run-toggles" role="group" aria-label="Runs to show">
+    <button class="chip" data-run="__all" aria-pressed="${TRAIN_SEL.length === order.length}">All</button>
+    <button class="chip" data-run="__new" aria-pressed="${TRAIN_SEL.length === 1 && TRAIN_SEL[0] === order[0]}">Newest only</button>
+    <span class="sep"></span>${chips}<span class="sep"></span>
+    <label><input type="checkbox" id="train-eps" ${TRAIN_EPS ? "checked" : ""}> training episodes (faint)</label></div>`;
+  if (!runs.length) { $("training").innerHTML = `<div class="panel">${bar}<p class="muted">Pick a run above.</p></div>`; return; }
   const W = 560, Hh = 210, L = 44, T = 10, B = 28, h = Hh - T - B;
   const maxStep = Math.max(...runs.map(([, c]) => Math.max(...(c["eval/success"] || c["episode/is_success"] || [[1, 0]]).map(p => p[0]))));
   const x = s => L + (W - L - 10) * s / maxStep, y = v => T + h * (1 - v);
   let g = yAxis(W, T, h, [0, .25, .5, .75, 1], pct, L);
-  for (let k = 0; k <= 4; k++) g += `<text x="${x(maxStep * k / 4)}" y="${Hh - 8}" text-anchor="middle">${(maxStep * k / 4 / 1e6).toFixed(1)}M</text>`;
+  const tick = v => v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : Math.round(v / 1e3) + "k";
+  for (let k = 0; k <= 4; k++) g += `<text x="${x(maxStep * k / 4)}" y="${Hh - 8}" text-anchor="middle">${tick(maxStep * k / 4)}</text>`;
   const legend = [];
   for (const [eid, c] of runs) {
-    const col = colorOf(eid), e = R.entries.find(z => z.id === eid);
+    const col = colorOf(eid), e = entry(eid);
     const ev = c["eval/success"], tr = c["episode/is_success"];
-    if (tr) g += `<path d="${svgLine(tr.map(p => [x(p[0]), y(p[1])]))}" fill="none" stroke="${col}" stroke-width="1.5" opacity=".35"/>`;
+    if (tr && TRAIN_EPS) g += `<path d="${svgLine(tr.map(p => [x(p[0]), y(p[1])]))}" fill="none" stroke="${col}" stroke-width="1.5" opacity=".3"/>`;
     if (ev) { g += `<path d="${svgLine(ev.map(p => [x(p[0]), y(p[1])]))}" fill="none" stroke="${col}" stroke-width="2"/>`;
-      g += ev.map(p => `<circle cx="${x(p[0])}" cy="${y(p[1])}" r="3.5" fill="${col}" data-tip="<b>${esc(e?.label || eid)}</b><br>${(p[0] / 1e6).toFixed(2)}M steps: eval ${pct(p[1])}"/>`).join(""); }
-    legend.push(`<span><i style="--c:${col}"></i>${esc(e?.label || eid)} (dots: eval, faint: training episodes)</span>`);
+      g += ev.map(p => `<circle cx="${x(p[0])}" cy="${y(p[1])}" r="3.5" fill="${col}" stroke="var(--panel)" stroke-width="1" data-tip="<b>${esc(e?.label || eid)}</b><br>${(p[0] / 1e6).toFixed(2)}M steps: eval ${pct(p[1])}"/>`).join(""); }
+    const best = ev?.length ? Math.max(...ev.map(p => p[1])) : null;
+    legend.push(`<span><i style="--c:${col}"></i>${esc(e?.label || eid)}${best != null ? ` · best eval ${pct(best)}` : ""}</span>`);
   }
-  $("training").innerHTML = `<div class="panel"><svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="Training curves">${g}</svg>
-    <div class="legend" style="margin-top:8px">${legend.join("")}</div></div>`;
+  $("training").innerHTML = `<div class="panel">${bar}<svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="Training curves">${g}</svg>
+    <div class="legend" style="margin-top:8px">${legend.join("")}</div>
+    <p class="muted" style="font-size:12px;margin:6px 0 0">Dots: evaluation success (fixed seeds, the policy's mean action)${TRAIN_EPS ? "; faint lines: training episodes" : ""}. Steps count from each run's own start.</p></div>`;
 }
+$("training").addEventListener("click", ev => {
+  const b = ev.target.closest(".chip"); if (!b) return;
+  const order = Object.keys(R.curves).sort((a, c) => (R.entries.find(z => z.id === c)?.saved || "").localeCompare(R.entries.find(z => z.id === a)?.saved || ""));
+  const id = b.dataset.run;
+  if (id === "__all") TRAIN_SEL = order.slice();
+  else if (id === "__new") TRAIN_SEL = order.slice(0, 1);
+  else TRAIN_SEL = TRAIN_SEL.includes(id) ? TRAIN_SEL.filter(z => z !== id) : [...TRAIN_SEL, id];
+  try { localStorage.setItem("chopstix-train-sel", JSON.stringify(TRAIN_SEL)); } catch {}
+  renderTraining();
+});
+$("training").addEventListener("change", ev => {
+  if (ev.target.id !== "train-eps") return;
+  TRAIN_EPS = ev.target.checked;
+  try { localStorage.setItem("chopstix-train-eps", TRAIN_EPS ? "1" : "0"); } catch {}
+  renderTraining();
+});
 
 function renderGrip() {
   const rows = R.grip_checks.slice().sort((a, b) => b.hold - a.hold);
@@ -792,7 +834,7 @@ function hud(info, t) {
 }
 function buildTimeline() {
   const total = nSteps(); $("t").max = total;
-  $("bands").innerHTML = CLIP.phase_steps ? CLIP.phase_steps.map((n, i) => `<div class="${HOLD_PHASES.has(PHASES[i]) ? "hold" : ""}" style="flex:${n}" title="${PHASES[i]}">${n >= 20 ? PHASES[i] : ""}</div>`).join("") : `<div style="flex:1">${CLIP.setup === "griplab" ? "gravity only · fingers fixed" : "hold · 0.03 N pushes every 0.1 s"}</div>`;
+  $("bands").innerHTML = CLIP.phase_steps ? CLIP.phase_steps.map((n, i) => `<div class="${HOLD_PHASES.has(PHASES[i]) ? "hold" : ""}" style="flex:${n}" title="${PHASES[i]}">${n >= 20 ? PHASES[i] : ""}</div>`).join("") : `<div style="flex:1">${CLIP.setup === "griplab" ? "gravity only · fingers fixed" : esc(R.setups[CLIP.setup]?.label || "hold")}</div>`;
   $("marks").innerHTML = CLIP.info.map((inf, i) => inf.dropped ? `<span style="left:${i / total * 100}%;background:var(--critical);height:12px;top:-4px"></span>`
     : (CLIP.stage === "pick" ? inf.both_touch > 0 : inf.ok > 0) ? `<span style="left:${i / total * 100}%;background:var(--good)"></span>` : "").join("");
   const b = $("badge"); b.hidden = false;
@@ -811,14 +853,19 @@ function setView(v) {
   if (v === "top") { controls.target.copy(focus); camera.position.copy(focus).add(new THREE.Vector3(0.001, -0.02, 0.6)); }
   key.target.position.copy(focus); key.position.copy(focus).add(new THREE.Vector3(0.35, -0.45, 0.9)); controls.update();
 }
+function fmtWhen(iso) {  // "2026-11-22T15:42:10-0500" -> "Sun 22 Nov, 15:42"
+  const d = new Date(iso.replace(/([+-]\d\d)(\d\d)$/, "$1:$2"));
+  return isNaN(d) ? iso : d.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
 function renderClipList() {
   if (!R) return;
-  const rank = c => R.entries.findIndex(e => e.id === c.entry);  // newest run first, its best attempt on top
-  const list = R.clips.filter(c => c.setup === SETUP).sort((a, b) => rank(b) - rank(a) || (b.best ? 1 : 0) - (a.best ? 1 : 0)), lab = R.clips.filter(c => c.setup === "griplab");
+  const saved = c => R.entries.find(e => e.id === c.entry)?.saved || "";  // newest policy first, grip alone last
+  const list = R.clips.filter(c => c.setup === SETUP).sort((a, b) => saved(b).localeCompare(saved(a)) || (b.best ? 1 : 0) - (a.best ? 1 : 0)), lab = R.clips.filter(c => c.setup === "griplab");
   const btn = c => { const e = R.entries.find(z => z.id === c.entry);
     const st = c.success ? ["--good", c.setup === "griplab" ? "holds" : "success"] : c.terminated ? ["--critical", "ended early"] : ["--warn", "failed"];
     return `<button class="b clip" data-id="${c.id}" aria-pressed="false"><span class="pill" style="--c:var(${st[0]})">${st[1]}</span>
-      <b style="font-size:13px">${esc(c.label || `${e?.label || c.entry} · seed ${c.seed}`)}</b><small>${c.best ? "best attempt of the test set · " : ""}${(c.length * R.dt).toFixed(1)} s</small></button>`; };
+      <b style="font-size:13px">${esc(c.label || `${e?.label || c.entry} · seed ${c.seed}`)}</b><small>${c.setup === "griplab" ? "" : "test: <b>" + esc(R.setups[c.setup]?.label || c.setup) + "</b> · "}${c.best ? "best attempt of the test set · " : ""}${(c.length * R.dt).toFixed(1)} s</small>
+      <small class="when">${e?.saved ? "policy saved " + fmtWhen(e.saved) : c.setup === "griplab" ? "" : "no policy · recorded " + fmtWhen(R.generated)}</small></button>`; };
   $("clips").innerHTML = (list.map(btn).join("") || `<span class="muted">No recordings for this setup.</span>`)
     + (lab.length ? `<h3 style="margin-top:6px">Grip lab</h3>` + lab.map(btn).join("") : "");
   const pref = list.find(c => c.best) || list[0];
