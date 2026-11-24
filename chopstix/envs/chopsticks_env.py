@@ -50,6 +50,8 @@ class ChopsticksEnvCfg:
     # Hold stage.
     hold_grip: str = "closed_v5_mj4"  # name in chopstix/grips/ or a path (grip lab: README_MUJOCO.md)
     hold_palm_pos: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.3])
+    # 3x3 palm rotation, row-major (9 numbers); empty = the grip's own. Lets the hold stages train in the pick pose.
+    hold_palm_rot: list[float] = field(default_factory=list)
     hold_residual: float = 0.1
     hold_push: float = 0.03
     hold_push_every: int = 2
@@ -123,6 +125,7 @@ class ChopsticksEnvCfg:
     pick_place_dist: float = 0.10
     pick_place_drop: float = 0.005
     pick_place_tolerance: float = 0.02
+    pick_end_tip_err: float = 0.0  # m: success also needs both stick tips this close to the grip's pose at the end; 0 = off
     pick_open_gap: float = 0.008
     w_pick_open: float = 1.0
     w_pick_released: float = 2.0
@@ -133,6 +136,7 @@ class ChopsticksEnvCfg:
     w_pick_stick_lost: float = 0.0
     pick_lost_time: float = 0.15
     w_pick_drop: float = 0.0
+    w_pick_settle: float = 0.0  # release/retreat: reward for the stick tips staying where the (opening) grip holds them
     pick_drop_lift: float = 0.015
     pick_drop_time: float = 0.15
 
@@ -262,8 +266,9 @@ class ChopsticksEnv(gym.Env):
             self._alpha_vel = 0.0
             self._alpha_speed = cfg.hold_alpha_rate * rng.uniform(0.3, 1.0)
             self._dwell = rng.uniform(cfg.hold_alpha_dwell_min, cfg.hold_alpha_dwell_max)
-        self._place(np.array(cfg.hold_palm_pos), h["palm_rot"], h, cfg.hold_stick_noise)
-        self._palm_base = (np.array(cfg.hold_palm_pos, float), h["palm_rot"].copy())
+        rot = np.array(cfg.hold_palm_rot, float).reshape(3, 3) if cfg.hold_palm_rot else h["palm_rot"]
+        self._place(np.array(cfg.hold_palm_pos), rot, h, cfg.hold_stick_noise)
+        self._palm_base = (np.array(cfg.hold_palm_pos, float), rot.copy())
         unit = lambda: (lambda v: v / np.linalg.norm(v))(rng.normal(size=3))  # noqa: E731
         self._wobble = (unit(), np.radians(rng.uniform(0, cfg.hold_wobble))) if cfg.hold_wobble > 0 else None
         self._shake = (unit(), rng.uniform(0, cfg.hold_shake) / (2 * np.pi * 3.0) ** 2) if cfg.hold_shake > 0 else None
@@ -510,6 +515,9 @@ class ChopsticksEnv(gym.Env):
         info["upper_drift"] = float(np.linalg.norm(to_palm @ (pu + ru @ web - palm_pos) - (ref_pu + ref_ru @ web)))
         info["lower_drift"] = float(np.linalg.norm(to_palm @ (pl - palm_pos) - ref_pl))
         half = CHOPSTICK_LENGTH / 2
+        for name, (p, r), (rp, rr) in zip(STICKS, poses, self._ref()["sticks"]):  # tip vs where the grip puts it
+            info[f"tip_err_{name}"] = float(np.linalg.norm(to_palm @ (p + r[:, 0] * half - palm_pos) - (rp + rr[:, 0] * half)))
+        info["tip_err"] = max(info["tip_err_upper"], info["tip_err_lower"])
         a = pu + ru[:, 0] * (half - cfg.pick_back)
         b = pl + rl[:, 0] * float((a - pl) @ rl[:, 0])
         info["object_to_spot"] = float(np.linalg.norm(obj - (a + b) / 2))
@@ -559,6 +567,7 @@ class ChopsticksEnv(gym.Env):
         info["is_success"] = bool(
             self._pick_lifted > cfg.pick_success_height and info["released"]
             and info["object_to_b"] < cfg.pick_place_tolerance and held and phase == "retreat"
+            and (not cfg.pick_end_tip_err or info["tip_err"] < cfg.pick_end_tip_err)
         )  # fmt: skip
 
     # ------------------------------------------------------------------ reward & termination
@@ -610,6 +619,8 @@ class ChopsticksEnv(gym.Env):
             ),
             "pick_stick_lost": -cfg.w_pick_stick_lost * info["sticks_lost"],
             "pick_drop": -cfg.w_pick_drop * info["dropped"],
+            "pick_settle": cfg.w_pick_settle * float(info["phase"] >= 6)
+            * float(np.mean([np.exp(-info[f"tip_err_{n}"] / 0.015) for n in STICKS])),
         }  # fmt: skip
 
     def _lost(self, info) -> bool:

@@ -32,6 +32,8 @@ class PPOCfg:
     max_grad_norm: float = 1.0
     lr: float = 3e-4
     desired_kl: float = 0.01  # adaptive learning rate; <= 0 disables
+    lr_min: float = 1e-5  # bounds for the adaptive learning rate
+    lr_max: float = 1e-2
     actor_freeze_iters: int = 0  # train only the critic for this many iterations (useful after pretraining)
 
 
@@ -114,9 +116,9 @@ class PPO:
                     clip_frac = (((ratio - 1).abs() > cfg.clip).float() * w).sum() / denom
                 if cfg.desired_kl > 0 and train_actor:
                     if kl > 2 * cfg.desired_kl:
-                        self.lr = max(1e-5, self.lr / 1.5)
+                        self.lr = max(cfg.lr_min, self.lr / 1.5)
                     elif kl < cfg.desired_kl / 2:
-                        self.lr = min(1e-2, self.lr * 1.5)
+                        self.lr = min(cfg.lr_max, self.lr * 1.5)
                     for group in self.optimizer.param_groups:
                         group["lr"] = self.lr
 
