@@ -313,10 +313,10 @@ class Sim:
         mujoco.mj_forward(self.model, self.data)
 
     def step(self, n: int = 1, forces: dict | None = None):
-        """n physics steps; `forces` = {stick name: world force (N) at its centre of mass}, held for all n."""
+        """n physics steps; `forces` = {stick name or "object": world force (N) at its centre of mass}, held for all n."""
         self.data.xfrc_applied[:] = 0.0
         for name, f in (forces or {}).items():
-            self.data.xfrc_applied[self.stick_body[name], :3] = f
+            self.data.xfrc_applied[self.object_body if name == "object" else self.stick_body[name], :3] = f
         mujoco.mj_step(self.model, self.data, nstep=n)
 
     # ------------------------------------------------------------------ reading state

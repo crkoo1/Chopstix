@@ -51,6 +51,7 @@ def best_eval(name: str) -> float:
 
 
 def main():
+    global GATE, STOP, PPO_L
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--open", default="hg_1_open74mm")
     p.add_argument("--closed", default="hg_1")
@@ -58,12 +59,36 @@ def main():
     p.add_argument("--residual", type=float, default=0.2, help="policy finger range (rad), the same in every stage")
     p.add_argument("--lr-max", type=float, default=3e-4)
     p.add_argument("--solref", type=float, default=0.0, help="hand-stick contact stiffness (MuJoCo solref time constant) in every stage; 0 = default 0.02")
+    # second pass (user, 2026-11-23 21:45): smaller learning rate, more episodes, 98% gate, from the first pass's bests
+    p.add_argument("--gate", type=float, default=GATE, help="best eval a stage needs before the next (also its early-stop level)")
+    p.add_argument("--lr", type=float, default=5e-5, help="starting learning rate")
+    p.add_argument("--lr-min", type=float, default=1e-5)
+    p.add_argument("--rollout", type=int, default=256, help="steps per env per update (x 14 envs = the batch)")
+    p.add_argument("--eval-rounds", type=int, default=4, help="eval episodes = rounds x 14")
+    p.add_argument("--patience", type=int, default=60, help="stop a run after this many evals without a new best")
+    p.add_argument("--total", type=float, default=0.0, help="max env steps per run (0 = 30M, 40M for the pick)")
+    p.add_argument("--init-from", default="", help="first-pass prefix: each stage's first run continues from that pass's best run of the same stage")
+    p.add_argument("--wait-done", action="store_true", help="first wait for the chain already running to log 'train_level: done'")
     args = p.parse_args()
     OPEN, CLOSED = args.open, args.closed
-    global PPO_L
-    PPO_L = ["--ppo", "lr=5e-5", "lr_min=1e-5", f"lr_max={args.lr_max}", "desired_kl=0.02", "entropy_coef=0.005",
-             "entropy_skip_dims=6", "rollout_steps=256", "epochs=2"]  # fmt: skip
+    GATE = args.gate
+    STOP = ["--eval-every", "12", "--eval-rounds", str(args.eval_rounds), "--eval-plateau-patience", str(args.patience),
+            "--eval-target-success", str(max(GATE, 0.95)), "--num-envs", "14"]  # fmt: skip
+    PPO_L = ["--ppo", f"lr={args.lr}", f"lr_min={args.lr_min}", f"lr_max={args.lr_max}", "desired_kl=0.02", "entropy_coef=0.005",
+             "entropy_skip_dims=6", f"rollout_steps={args.rollout}", "epochs=2"]  # fmt: skip
     keep_awake()
+    if args.wait_done:
+        logf = ROOT / "runs" / "overnight" / "next_log.txt"
+        seen = logf.stat().st_size
+        log(f"train_level: waiting for the running chain to finish before {args.prefix}_*")
+        while "train_level: done" not in logf.read_text(encoding="utf-8", errors="replace")[seen:]:
+            time.sleep(120)
+    init = {}
+    if args.init_from:  # the last "stage best X% in RUN" line per stage of that pass
+        text = (ROOT / "runs" / "overnight" / "next_log.txt").read_text(encoding="utf-8", errors="replace")
+        for m in re.finditer(rf"train_level: {re.escape(args.init_from)}_(hold|openclose|pick)\S*: best \S+ \(stage best \S+ in (\S+)\)", text):
+            init[m.group(1)] = m.group(2)
+        log(f"train_level: {args.prefix}_* starts each stage from {init}")
     t0 = time.time()
     sim = {"sim": {"solref": [args.solref, 1.0]}} if args.solref else {}
     pick = {**env_for(OPEN, CLOSED), "hold_residual": args.residual, **sim}
@@ -93,18 +118,22 @@ def main():
             lines.append(f"- Stage {i + 1} ({what}) missed {GATE:.0%} after {MAX_RUNS} runs (best {best[key][0]:.0%}); chain stopped")
             break
         name = f"{args.prefix}_{key}" + (f"_{runs[key]}" if runs[key] > 1 else "")
-        src = (best[stages[i - 1][0]][1] if i else None) if from_prev[key] else best[key][1]
+        if runs[key] == 1 and key in init:
+            src = init[key]  # second pass: carry on from the first pass's best for this stage
+        else:
+            src = (best[stages[i - 1][0]][1] if i else None) if from_prev[key] else best[key][1]
         pre = str(ROOT / "runs" / "train" / src / "actor_best.pt") if src else None
         extra = PPO_L + (["actor_freeze_iters=20"] if pre else []) + STOP + ["--seed", str(runs[key] - 1)]
         start = f"from {src}'s best" if src else "from scratch"
         done = train(name, as_args(env), f"Stage 4c-{i + 1} (run {runs[key]}): {CLOSED} sideways, {what}", f"{start}; gate {GATE:.0%}.",
-                     f"{CLOSED} sideways: {what}", POSE + " " + desc, pretrained=pre, extra=extra, total=40e6 if key == "pick" else 30e6)  # fmt: skip
+                     f"{CLOSED} sideways: {what}", POSE + " " + desc, pretrained=pre, extra=extra,
+                     total=args.total or (40e6 if key == "pick" else 30e6))  # fmt: skip
         b = best_eval(name)
         if key not in best or b > best[key][0] or b >= GATE:  # a passing rerun (after going back) is the fresher policy
             best[key] = (b, name)
         from_prev[key] = False
-        lines.append(f"- Stage {i + 1} ({what}), `runs/train/{name}` ({start}): best {b:.0%}; {done or 'reached total steps'}")
-        log(f"train_level: {name}: best {b:.0%} (stage best {best[key][0]:.0%} in {best[key][1]})")
+        lines.append(f"- Stage {i + 1} ({what}), `runs/train/{name}` ({start}): best {b:.1%}; {done or 'reached total steps'}")
+        log(f"train_level: {name}: best {b:.1%} (stage best {best[key][0]:.1%} in {best[key][1]})")
         if best[key][0] >= GATE:
             i += 1
             if i < len(stages):
@@ -114,7 +143,7 @@ def main():
             from_prev[key] = True  # redo this stage from the refreshed previous stage
             i -= 1
             log(f"train_level: going back to stage {i + 1} once before retrying {key}")
-    summary(["## Stage 4c: human-style grip hg_1, sideways closing: hold, open/close, pick (90% gate per stage)", "", *lines,
+    summary([f"## Stage 4c ({args.prefix}): grip {CLOSED}, sideways closing: hold, open/close, pick ({GATE:.0%} gate per stage)", "", *lines,
              f"- {(time.time() - t0) / 3600:.1f} h; ended {time.strftime('%Y-%m-%d %H:%M')}"])  # fmt: skip
     log("train_level: done")
 

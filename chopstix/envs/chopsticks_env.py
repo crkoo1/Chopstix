@@ -15,6 +15,7 @@ Physics knobs are chopstix.sim.SimCfg fields and can be passed in the same overr
 "timestep": 0.005}). chops' ball_* names map onto the object (ball_radius -> object_size, ball_cube -> object="cube").
 """
 
+from collections import deque
 from dataclasses import dataclass, field, fields
 from typing import Any
 
@@ -139,6 +140,20 @@ class ChopsticksEnvCfg:
     w_pick_settle: float = 0.0  # release/retreat: reward for the stick tips staying where the (opening) grip holds them
     pick_drop_lift: float = 0.015
     pick_drop_time: float = 0.15
+    # Robustness (user, 2026-11-24): get the policy to near-failure states and teach it to recover.
+    pick_object_push: float = 0.0  # N: random shoves on the cube during lift and carry; 0 = off
+    pick_object_push_prob: float = 0.05  # chance per control step that a shove starts
+    pick_object_push_time: float = 0.2  # s each shove lasts
+    # Physics randomization, drawn once when the env is created (each parallel env gets its own world):
+    # {sim field: [low, high] multiplier}, e.g. {"stick_friction": [0.75, 1.25], "object_mass": [0.6, 1.6]}.
+    domain_rand: dict = field(default_factory=dict)
+    domain_rand_seed: int = -1  # -1 = a fresh draw per env; >= 0 = this seed (the page's tests use a fixed world)
+    # Restart from failures: keep the state from pick_restart_back s before the cube starts slipping, and start this
+    # share of training episodes (resets without a seed; evals always pass seeds) from one of those states.
+    pick_restart_prob: float = 0.0
+    pick_restart_back: float = 0.25
+    pick_restart_buffer: int = 64
+    pick_slip_speed: float = 0.03  # m/s: cube moving this fast relative to the tips while held = slipping
 
     @classmethod
     def from_overrides(cls, overrides: dict | None = None) -> "ChopsticksEnvCfg":
@@ -178,7 +193,18 @@ class ChopsticksEnv(gym.Env):
             raise ValueError(f"stage {cfg.stage!r}: only 'hold' and 'pick' are ported so far")
         self.cfg = cfg
         self.render_mode = render_mode
-        self.sim = Sim(SimCfg.from_overrides(cfg.sim))
+        sim_cfg, self.world = dict(cfg.sim), {}
+        if cfg.domain_rand:  # this env's own world: each listed sim value times a random factor, drawn once
+            rng = np.random.default_rng(None if cfg.domain_rand_seed < 0 else cfg.domain_rand_seed)
+            base = SimCfg.from_overrides(sim_cfg)
+            for k, (lo, hi) in sorted(cfg.domain_rand.items()):
+                v = getattr(base, k)
+                if k in ("stick_friction", "object_friction") and not v:
+                    v = base.friction  # 0 means "same as the hand"
+                sim_cfg[k] = self.world[k] = float(v * rng.uniform(lo, hi))
+        self.sim = Sim(SimCfg.from_overrides(sim_cfg))
+        self._obj_push, self._obj_push_left = np.zeros(3), 0
+        self._ring, self._fail, self._slip_saved, self._rel_prev = deque(), deque(maxlen=max(1, cfg.pick_restart_buffer)), False, None
         self.dt = 1.0 / cfg.control_frequency
         self.substeps = max(1, round(self.dt / self.sim.model.opt.timestep))
         self.observation_space = gym.spaces.Box(-np.inf, np.inf, (PROPRIO_DIM + TASK_DIM,), dtype=np.float32)
@@ -235,6 +261,16 @@ class ChopsticksEnv(gym.Env):
     # ------------------------------------------------------------------ reset
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         super().reset(seed=seed)
+        cfg = self.cfg
+        self._ring.clear()
+        self._slip_saved, self._rel_prev = False, None
+        self._obj_push, self._obj_push_left = np.zeros(3), 0
+        if (cfg.stage == "pick" and seed is None and self._fail and cfg.pick_restart_prob > 0
+                and self.np_random.random() < cfg.pick_restart_prob):  # fmt: skip
+            self._restore(self._fail[int(self.np_random.integers(len(self._fail)))])
+            obs, info = self._observe()
+            info["restarted"] = 1.0
+            return obs, info
         self._step_count = 0
         self._prev_action = np.zeros(ACTION_DIM)
         self._push = np.zeros((2, 3))
@@ -407,7 +443,16 @@ class ChopsticksEnv(gym.Env):
         self._targets = np.clip(self._ref()["targets"] + residual * cfg.hold_residual, *sim.joint_limits.T)
         sim.set_targets(self._targets)
         self._prev_action = a
-        forces = {n: f for n, f in zip(STICKS, self._push)} if (cfg.stage == "hold" or cfg.pick_push) else None
+        forces = {n: f for n, f in zip(STICKS, self._push)} if (cfg.stage == "hold" or cfg.pick_push) else {}
+        if cfg.stage == "pick" and cfg.pick_object_push:  # shoves on the cube at random moments of the lift and carry
+            if self._obj_push_left == 0 and self._pick_phase(step) in ("lift", "carry") and self.np_random.random() < cfg.pick_object_push_prob:
+                d = self.np_random.normal(size=3)
+                self._obj_push = d / np.linalg.norm(d) * cfg.pick_object_push * self.np_random.uniform(0.5, 1.0)
+                self._obj_push_left = max(1, round(cfg.pick_object_push_time * cfg.control_frequency))
+            if self._obj_push_left > 0:
+                forces["object"] = self._obj_push
+                self._obj_push_left -= 1
+        forces = forces or None
         if cfg.stage == "hold" and (self._wobble or self._shake):
             pos0, rot0 = self._palm_base
             h = sim.model.opt.timestep
@@ -425,12 +470,60 @@ class ChopsticksEnv(gym.Env):
         self._step_count += 1
 
         obs, info = self._observe()
+        if cfg.stage == "pick" and cfg.pick_restart_prob > 0:
+            self._watch_slip(info)
         terms = self._reward_terms(info)
         reward = float(sum(terms.values()))
         info.update({f"reward_{k}": float(v) for k, v in terms.items()})
         terminated = self._lost(info) or not np.all(np.isfinite(obs))
         truncated = self._step_count >= cfg.steps_per_episode
         return obs, reward, bool(terminated), bool(truncated), info
+
+    # ------------------------------------------------------------------ restart from failures
+    _KEEP = ("_step_count", "_alpha", "_alpha_goal", "_alpha_vel", "_push", "_pick_open", "_pick_lifted", "_pick_held", "_unpinched",
+             "_stick_unforced", "_targets", "_prev_action", "_pick_knots", "_pick_b", "_tips_rest_height", "_obj_push", "_obj_push_left")  # fmt: skip
+
+    @staticmethod
+    def _cp(v):
+        return v.copy() if isinstance(v, np.ndarray) else [x.copy() for x in v] if isinstance(v, list) else v
+
+    def _snapshot(self) -> dict:
+        """Everything needed to carry on from this moment: MuJoCo's integration state plus the env's own counters."""
+        import mujoco
+
+        spec = mujoco.mjtState.mjSTATE_INTEGRATION
+        st = np.empty(mujoco.mj_stateSize(self.sim.model, spec))
+        mujoco.mj_getState(self.sim.model, self.sim.data, st, spec)
+        return {"mj": st, "env": {k: self._cp(getattr(self, k)) for k in self._KEEP if hasattr(self, k)},
+                "palm_cmd": tuple(x.copy() for x in self.sim.palm_cmd)}  # fmt: skip
+
+    def _restore(self, snap: dict):
+        import mujoco
+
+        mujoco.mj_setState(self.sim.model, self.sim.data, snap["mj"], mujoco.mjtState.mjSTATE_INTEGRATION)
+        for k, v in snap["env"].items():
+            setattr(self, k, self._cp(v))
+        self.sim.palm_cmd = tuple(x.copy() for x in snap["palm_cmd"])
+        self.sim.forward()
+
+    def _watch_slip(self, info):
+        """Keep the last few states; when a held cube starts sliding against the tips, save the one from before it."""
+        cfg = self.cfg
+        back = max(1, round(cfg.pick_restart_back * cfg.control_frequency))
+        if info["phase"] in (2, 3, 4, 5):
+            self._ring.append(self._snapshot())
+            while len(self._ring) > back + 1:
+                self._ring.popleft()
+        rel = self.sim.object_pose()[0] - self._stick_tips().mean(0)
+        speed = 0.0 if self._rel_prev is None else float(np.linalg.norm(rel - self._rel_prev)) / self.dt
+        self._rel_prev = rel
+        info["cube_slip_speed"] = speed
+        held = self._pick_held or (info["both_touch"] and info["object_lift"] > cfg.pick_drop_lift)
+        if (not self._slip_saved and held and info["phase"] in (3, 4, 5) and not info["open_cmd"]
+                and (speed > cfg.pick_slip_speed or info["dropped"]) and len(self._ring) > back):  # fmt: skip
+            self._fail.append(self._ring[0])
+            self._slip_saved = True
+            info["slip_saved"] = 1.0
 
     # ------------------------------------------------------------------ observation & info
     def _stick_tips(self) -> np.ndarray:

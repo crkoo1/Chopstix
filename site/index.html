@@ -182,6 +182,78 @@ button.b[aria-pressed="true"] { border-color: var(--fg); background: var(--soft)
 .stats { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 13px; }
 .stats dt { color: var(--muted); } .stats dd { margin: 0; text-align: right; font: 12px var(--mono); font-variant-numeric: tabular-nums; }
 
+/* ---- pose overview (top of the page) */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.now { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 12px 16px; border-radius: 8px;
+  background: var(--panel); border: 1px solid var(--line); font-size: 13px; }
+.now .live { display: inline-flex; align-items: center; gap: 8px; font: 600 11px var(--ui); letter-spacing: .07em; text-transform: uppercase; }
+.now .live::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--good));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c, var(--good)) 22%, transparent); }
+.now b { font: 600 14px var(--head); }
+.now .kv { font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.now .kv strong { color: var(--fg); font-weight: 500; }
+.now .when { margin-left: auto; font: 12px var(--mono); color: var(--muted); }
+
+.pose-toggle { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 8px; }
+.pose-btn { display: grid; gap: 2px; text-align: left; padding: 12px 16px; border-radius: 8px; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--line); color: var(--fg); font: 13px var(--ui); }
+.pose-btn small { font: 600 11px var(--ui); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.pose-btn b { font: 600 16px var(--head); }
+.pose-btn span { color: var(--muted); font: 12px var(--mono); }
+.pose-btn[aria-selected="true"] { border-color: var(--fg); box-shadow: inset 0 -3px 0 var(--fg); }
+.pose-btn:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+
+.pose { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 860px) { .pose { grid-template-columns: minmax(0, 1fr); } }
+.pose figure { margin: 0; display: grid; gap: 6px; }
+.pose img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: var(--stage); aspect-ratio: 1120 / 420; object-fit: cover; }
+.pose figcaption { font-size: 12px; color: var(--muted); }
+.pose .about { display: grid; gap: 14px; align-content: start; }
+.best { display: grid; gap: 10px; }
+.best-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 420px) { .best-row { grid-template-columns: minmax(0, 1fr); } }
+.best-stat { display: grid; gap: 2px; padding: 12px; border-radius: 8px; background: var(--soft); align-content: start; }
+.best-stat .k { font: 600 11px var(--ui); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.best-stat .v { font: 600 26px var(--head); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.best-stat .d { font: 11.5px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.best .meta { font: 12px var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+
+.flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+@media (max-width: 980px) { .flow { grid-template-columns: minmax(0, 1fr); gap: 22px; } }
+.flow > li { position: relative; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.flow > li + li::before { content: "→"; position: absolute; left: -22px; top: 10px; font: 600 18px var(--head); color: var(--muted); }
+@media (max-width: 980px) { .flow > li + li::before { content: "↓"; left: 0; top: -22px; } }
+.st-head { display: grid; gap: 2px; }
+.st-head .n { font: 600 11px var(--ui); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.st-head h3 { font: 600 17px var(--head); letter-spacing: -0.01em; text-transform: none; color: var(--fg); }
+.st-head p { font-size: 13px; color: var(--muted); }
+.st-best { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; align-items: baseline; }
+.st-best .v { font: 600 30px var(--head); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; grid-row: span 2; }
+.st-best .d { font: 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.spark svg { display: block; }
+.runs { display: grid; gap: 0; }
+.run { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13px; }
+.run .id { font: 500 12.5px var(--mono); overflow-wrap: anywhere; }
+.run .id.is-best::after { content: "best"; margin-left: 6px; font: 600 10px var(--ui); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--fg); background: var(--soft); border-radius: 99px; padding: 1px 7px; }
+.run .num { font: 12px var(--mono); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.run .why { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
+.watch { justify-self: start; }
+table.settings td:first-child { color: var(--muted); }
+table.settings td { white-space: normal; min-width: 120px; }
+table.settings td.v { font: 12.5px var(--mono); font-variant-numeric: tabular-nums; }
+table.settings th small { display: block; font: 11px var(--mono); text-transform: none; letter-spacing: 0; color: var(--muted); }
+
+.explore { display: grid; gap: 4px; padding-top: 18px; border-top: 1px solid var(--line); }
+.explore h2 { font-size: 22px; }
+details.more { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+details.more > summary { cursor: pointer; padding: 12px 16px; font: 600 15px var(--head); list-style: none; display: flex; align-items: center; gap: 10px; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::before { content: "+"; font: 600 16px var(--mono); color: var(--muted); width: 12px; }
+details.more[open] > summary::before { content: "–"; }
+details.more > section { padding: 0 16px 16px; }
+details.more > section > .sec-head h2 { display: none; }
+
 .notes { display: grid; gap: 10px; }
 .notes p b { font-weight: 600; }
 #tip { position: fixed; z-index: 20; pointer-events: none; background: var(--panel); color: var(--fg); border: 1px solid var(--line);
@@ -204,48 +276,44 @@ button.b[aria-pressed="true"] { border-color: var(--fg); background: var(--soft)
     <div class="sub" id="sub"><span>Shadow Hand · MuJoCo · deterministic rollouts on fixed seeds</span></div>
   </header>
 
-  <section aria-labelledby="h-latest">
-    <div class="sec-head"><h2 id="h-latest">Latest check</h2></div>
-    <div class="latest">
-      <div class="panel note" id="latest-note"><span class="loading">Loading results…</span></div>
-      <div class="tiles" id="tiles"></div>
-    </div>
+
+
+
+
+  <section aria-labelledby="h-now" class="now-wrap">
+    <h2 id="h-now" class="sr">Training now</h2>
+    <div class="now" id="now"><span class="loading">Loading results…</span></div>
   </section>
 
-  <section aria-labelledby="h-griplab">
+  <section aria-labelledby="h-poses">
     <div class="sec-head">
-      <h2 id="h-griplab">Grip lab</h2>
-      <p>The grip alone, no policy: palm held still, finger targets fixed. First gravity at nine hand orientations, then
-        disturbances stepped up until the grip lets go. A run holds when both sticks stay within 1 cm and tilt less than
-        10° in the palm, with three fingertips still on them. Spin about a stick's own axis is ignored: the stick is round.</p>
+      <h2 id="h-poses">Hand poses</h2>
+      <p>Pick a pose. Everything on the page follows it, down to the charts and the 3D replays.</p>
     </div>
-    <div class="cards" id="gl-cards"></div>
-    <div class="grid2" id="gl-ladders"></div>
-    <div class="legend" id="gl-legend"></div>
-    <div class="panel"><div class="chart-title">Gravity only, 10 s at each hand orientation</div>
-      <div class="chart-cap">Larger of the two sticks' movement and axis tilt after 10 s. Friction use is the highest tangential ÷ (friction × normal) force at any finger contact: 1.00 means that contact is at the edge of slipping and the others are carrying the load.</div>
-      <div class="scroll"><table id="gl-gravity"></table></div></div>
+    <div class="pose-toggle" role="tablist" aria-label="Hand pose" id="pose-toggle"></div>
+    <div class="pose" id="pose"></div>
   </section>
 
-  <section aria-labelledby="h-history">
+  <section aria-labelledby="h-flow">
     <div class="sec-head">
-      <h2 id="h-history">How it changed, check by check</h2>
-      <p>Every report adds a snapshot: the same test episodes, rerun on whatever policies exist at that point.</p>
+      <h2 id="h-flow">From A to Z</h2>
+      <p>Each stage starts from the best policy of the one before it, and only hands over once it reaches its gate.</p>
     </div>
-    <div class="grid2">
-      <div class="panel"><div class="chart-title">Success rate per snapshot</div><div class="chart-cap" id="hist-cap"></div>
-        <div id="hist-chart"></div><div class="legend" id="hist-legend" style="margin-top:8px"></div></div>
-      <div class="panel history"><h3>Log</h3><div class="timeline" id="timeline"></div></div>
-    </div>
+    <ol class="flow" id="flow"></ol>
   </section>
 
-  <section aria-labelledby="h-policies">
+  <section aria-labelledby="h-settings">
     <div class="sec-head">
-      <h2 id="h-policies">Policies on the bench</h2>
-      <p>Each card is one policy. Trained policies start from the MuJoCo grip and learn finger corrections on top of it.</p>
+      <h2 id="h-settings">Training settings of the best set</h2>
+      <p>PPO settings and test rules of the run that scored best in each stage.</p>
     </div>
-    <div class="cards" id="cards"></div>
+    <div class="panel scroll"><table class="settings" id="settings"></table></div>
   </section>
+
+  <div class="explore">
+    <h2>Explore the data</h2>
+    <p class="muted">Test results, episode by episode, for the pose picked above.</p>
+  </div>
 
   <section aria-labelledby="h-setup">
     <div class="sec-head">
@@ -322,7 +390,7 @@ button.b[aria-pressed="true"] { border-color: var(--fg); background: var(--soft)
             <button class="b" data-v="top">Top</button>
             <button class="b" id="v-follow" data-v="follow" aria-pressed="false">Follow</button>
           </div>
-          <div class="hint">drag to orbit · scroll to zoom · right-drag to pan</div>
+          <div class="hint">drag to turn · scroll or pinch to zoom · right-drag to pan</div>
         </div>
         <div class="controls">
           <button class="b" id="play" style="width:72px">Pause</button>
@@ -341,7 +409,49 @@ button.b[aria-pressed="true"] { border-color: var(--fg); background: var(--soft)
     </div>
   </section>
 
-  <section aria-labelledby="h-notes">
+  <details class="more"><summary><span>Snapshot history</span></summary>
+  <section aria-labelledby="h-history" class="folded">
+    <div class="sec-head">
+      <h2 id="h-history">How it changed, check by check</h2>
+      <p>Every report adds a snapshot: the same test episodes, rerun on whatever policies exist at that point.</p>
+    </div>
+    <div class="grid2">
+      <div class="panel"><div class="chart-title">Success rate per snapshot</div><div class="chart-cap" id="hist-cap"></div>
+        <div id="hist-chart"></div><div class="legend" id="hist-legend" style="margin-top:8px"></div></div>
+      <div class="panel history"><h3>Log</h3><div class="timeline" id="timeline"></div></div>
+    </div>
+  </section>
+  </details>
+
+  <details class="more"><summary><span>All policies of this pose</span></summary>
+  <section aria-labelledby="h-policies" class="folded">
+    <div class="sec-head">
+      <h2 id="h-policies">Policies on the bench</h2>
+      <p>Each card is one policy. Trained policies start from the MuJoCo grip and learn finger corrections on top of it.</p>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+  </details>
+
+  <details class="more"><summary><span>Grip lab (pose 1 grips)</span></summary>
+  <section aria-labelledby="h-griplab" class="folded">
+    <div class="sec-head">
+      <h2 id="h-griplab">Grip lab</h2>
+      <p>The grip alone, no policy: palm held still, finger targets fixed. First gravity at nine hand orientations, then
+        disturbances stepped up until the grip lets go. A run holds when both sticks stay within 1 cm and tilt less than
+        10° in the palm, with three fingertips still on them. Spin about a stick's own axis is ignored: the stick is round.</p>
+    </div>
+    <div class="cards" id="gl-cards"></div>
+    <div class="grid2" id="gl-ladders"></div>
+    <div class="legend" id="gl-legend"></div>
+    <div class="panel"><div class="chart-title">Gravity only, 10 s at each hand orientation</div>
+      <div class="chart-cap">Larger of the two sticks' movement and axis tilt after 10 s. Friction use is the highest tangential ÷ (friction × normal) force at any finger contact: 1.00 means that contact is at the edge of slipping and the others are carrying the load.</div>
+      <div class="scroll"><table id="gl-gravity"></table></div></div>
+  </section>
+  </details>
+
+  <details class="more"><summary><span>Reading the numbers</span></summary>
+  <section aria-labelledby="h-notes" class="folded">
     <div class="sec-head"><h2 id="h-notes">Reading the numbers</h2></div>
     <div class="panel notes">
       <p><b>Same episodes every time.</b> Each setup reruns the same seeds (start-joint noise, cube position, place target) with the policy's mean action, so a change between snapshots comes from the policy or the code, not from luck in the draw.</p>
@@ -351,6 +461,7 @@ button.b[aria-pressed="true"] { border-color: var(--fg); background: var(--soft)
       <p><b>Training evals</b> use their own fixed seeds and the training settings, so they can differ from the numbers here.</p>
     </div>
   </section>
+  </details>
 </main>
 <div id="tip" hidden></div>
 
@@ -464,7 +575,7 @@ function renderHistory() {
 }
 
 function renderCards() {
-  $("cards").innerHTML = R.entries.map(e => {
+  $("cards").innerHTML = R.entries.filter(e => !P || e.id === "scripted" || inPose(e.id)).map(e => {
     const rows = Object.entries(R.summaries[e.id] || {}).map(([sid, s]) =>
       `<dt>${esc(R.setups[sid].label)}</dt><dd>${s.success.k}/${s.success.n} · ${pct(s.success.p)}</dd>`).join("");
     const c = R.curves[e.id];
@@ -476,7 +587,7 @@ function renderCards() {
 
 // ---------- per-setup charts
 function renderTabs() {
-  $("tabs").innerHTML = Object.entries(R.setups).map(([sid, s]) =>
+  $("tabs").innerHTML = Object.entries(R.setups).filter(([sid]) => !P || curPose().setups.includes(sid)).map(([sid, s]) =>
     `<button class="tab" role="tab" id="tab-${sid}" aria-selected="${sid === SETUP}" data-s="${sid}">${esc(s.label)}</button>`).join("");
   $("setup-desc").textContent = R.setups[SETUP].desc;
 }
@@ -584,7 +695,7 @@ function renderSeries() {
 let TRAIN_SEL = null, TRAIN_EPS = false;  // which runs the training chart shows (remembered per viewer), faint episode lines
 try { TRAIN_SEL = JSON.parse(localStorage.getItem("chopstix-train-sel")); TRAIN_EPS = localStorage.getItem("chopstix-train-eps") === "1"; } catch {}
 function renderTraining() {
-  const all = Object.entries(R.curves);
+  const all = Object.entries(R.curves).filter(([id]) => !P || inPose(id));
   if (!all.length) {
     $("training").innerHTML = `<div class="empty"><b style="color:var(--fg)">No training runs yet.</b>
       <span>Once a policy is trained, add it to <code>site/lineup.json</code> with its <code>actor</code> and <code>run</code>, then run <code>python -m chopstix.tools.report --note "…"</code>. Its evaluation curve appears here and it joins every chart above.</span></div>`;
@@ -592,7 +703,7 @@ function renderTraining() {
   }
   const entry = id => R.entries.find(z => z.id === id), when = id => entry(id)?.saved || "";
   const order = all.map(([id]) => id).sort((a, b) => when(b).localeCompare(when(a)));  // newest first
-  if (!Array.isArray(TRAIN_SEL) || !TRAIN_SEL.some(id => R.curves[id])) TRAIN_SEL = order.slice(0, 1);
+  if (!Array.isArray(TRAIN_SEL) || !TRAIN_SEL.some(id => order.includes(id))) TRAIN_SEL = order.slice(0, 1);
   const runs = all.filter(([id]) => TRAIN_SEL.includes(id));
   const chips = order.map(id => `<button class="chip" data-run="${id}" aria-pressed="${TRAIN_SEL.includes(id)}" style="--c:${colorOf(id)}"
       title="${esc(entry(id)?.desc || "")}"><i></i>${esc(entry(id)?.label || id)}${when(id) ? ` <small style="color:var(--muted)">${fmtWhen(when(id))}</small>` : ""}</button>`).join("");
@@ -624,7 +735,7 @@ function renderTraining() {
 }
 $("training").addEventListener("click", ev => {
   const b = ev.target.closest(".chip"); if (!b) return;
-  const order = Object.keys(R.curves).sort((a, c) => (R.entries.find(z => z.id === c)?.saved || "").localeCompare(R.entries.find(z => z.id === a)?.saved || ""));
+  const order = Object.keys(R.curves).filter(id => !P || inPose(id)).sort((a, c) => (R.entries.find(z => z.id === c)?.saved || "").localeCompare(R.entries.find(z => z.id === a)?.saved || ""));
   const id = b.dataset.run;
   if (id === "__all") TRAIN_SEL = order.slice();
   else if (id === "__new") TRAIN_SEL = order.slice(0, 1);
@@ -754,7 +865,7 @@ const MAT = {};
 function mats() {
   const m = (hex, r, me) => { const x = new THREE.MeshStandardMaterial({ color: new THREE.Color(hex).convertSRGBToLinear(), roughness: r, metalness: me }); return x; };
   Object.assign(MAT, { plastic: m("#2a2a2a", 0.5, 0.05), metal: m("#e6e6e6", 0.35, 0.55), arm: m("#383838", 0.5, 0.0),
-    stick: m("#b5652b", 0.38, 0), cube: m("#e8e3d6", 0.6, 0) });
+    stick: m("#b5652b", 0.38, 0), cube: m("#d23a2c", 0.55, 0) });
 }
 function geomFrom(p) {
   const v = new Float32Array(Uint8Array.from(atob(p.v), c => c.charCodeAt(0)).buffer);
@@ -838,7 +949,7 @@ function buildTimeline() {
   $("marks").innerHTML = CLIP.info.map((inf, i) => inf.dropped ? `<span style="left:${i / total * 100}%;background:var(--critical);height:12px;top:-4px"></span>`
     : (CLIP.stage === "pick" ? inf.both_touch > 0 : inf.ok > 0) ? `<span style="left:${i / total * 100}%;background:var(--good)"></span>` : "").join("");
   const b = $("badge"); b.hidden = false;
-  b.textContent = CLIP.success ? "Success" : CLIP.terminated ? "Ended early" : "Failed";
+  b.textContent = "Result at the end: " + (CLIP.success ? "success" : CLIP.terminated ? "ended early" : "failed");
   b.style.color = `var(${CLIP.success ? "--good" : "--critical"})`;
 }
 function setView(v) {
@@ -894,16 +1005,147 @@ function loop(now) {
   controls.update(); renderer3.render(scene3, camera); requestAnimationFrame(loop);
 }
 
+// ---------- pose overview: now training, pose toggle, best set, stages A to Z, settings
+let P = null, POSE = "pose2";
+const STAGE_N = { hold: 1, openclose: 2, pick: 3 };
+const inPose = id => P.runs[id] ? P.runs[id].poses.includes(POSE) : (curPose().setups || []).includes(id);
+const curPose = () => P.poses.find(p => p.id === POSE) || P.poses[0];
+const sci = v => v == null ? "–" : v < 1e-3 ? v.toExponential(0) : String(v);
+function setupKind(sid) {  // which stage a test setup belongs to
+  const s = R.setups[sid]; if (!s) return null;
+  if (s.stage === "pick" || /pick/.test(sid)) return "pick";
+  return /openclose/.test(sid) || /open\/close/i.test(s.label || "") ? "openclose" : "hold";
+}
+function setupOfRun(run, stage) {
+  if (R.setups[run] && setupKind(run) === stage) return run;
+  const mine = (R.entries.find(e => e.id === run)?.setups || []).filter(s => R.setups[s] && setupKind(s) === stage);
+  return mine.find(s => s !== "hold" && s !== "pick") || mine[0] || null;  // the stage's own test, not another stage's
+}
+function testOf(run, stage) { const s = setupOfRun(run, stage); return s && R.summaries[run]?.[s]?.success; }
+function clipOf(run, stage) { const s = setupOfRun(run, stage); return R.clips.find(c => c.entry === run && c.setup === s && c.best) || R.clips.find(c => c.entry === run && c.setup === s); }
+function statusText(r) {
+  const g = pct(r.gate);
+  if (r.status === "running") return [`--s1`, `training now · last check ${pct(r.last ?? 0)}`];
+  if (r.status === "stopped") return ["--neutral", "stopped by hand"];
+  if (r.status === "target") return ["--good", `reached its early-stop target`];
+  if (r.status === "plateau") return (r.best ?? 0) >= r.gate ? ["--good", `passed the ${g} gate, then levelled off`] : ["--warn", `levelled off below the ${g} gate`];
+  return ["--neutral", "used all its steps"];
+}
+function renderNow() {
+  const r = P.now && P.runs[P.now];
+  const when = `<span class="when">updated ${esc(fmtWhen(P.generated))}</span>`;
+  if (!r) { $("now").innerHTML = `<span class="live" style="--c:var(--neutral)">Idle</span><span>Nothing is training right now.</span>${when}`; return; }
+  const pose = P.poses.find(p => p.id === r.poses.at(-1)), st = pose?.stages.find(s => s.key === r.stage);
+  $("now").innerHTML = `<span class="live">Training now</span><b>${esc(pose?.short || "")} · stage ${STAGE_N[r.stage]}: ${esc(st?.name || r.stage)}</b>
+    <span class="kv">run <strong>${esc(r.id)}</strong></span><span class="kv">last check <strong>${pct(r.last ?? 0)}</strong></span>
+    <span class="kv">best <strong>${pct(r.best ?? 0)}</strong> of ${r.settings.eval_episodes}</span><span class="kv">gate <strong>${pct(r.gate)}</strong></span>
+    <span class="kv">${r.n_evals} checks · since ${esc(fmtWhen(r.start))}</span>${when}`;
+}
+function renderPoseToggle() {
+  $("pose-toggle").innerHTML = P.poses.map(p => {
+    const last = p.best_set.at(-1) ? P.runs[p.best_set.at(-1)] : null;
+    return `<button class="pose-btn" role="tab" id="pose-${p.id}" aria-selected="${p.id === POSE}" data-pose="${p.id}">
+      <small>${esc(p.short)}</small><b>${esc(p.name)}</b><span>${last ? `best pick ${pct(last.best ?? 0)}` : "no pick yet"}${p.stages.some(s => s.runs.includes(P.now)) ? " · training now" : ""}</span></button>`;
+  }).join("");
+}
+$("pose-toggle").addEventListener("click", e => { const b = e.target.closest(".pose-btn"); if (!b || b.dataset.pose === POSE) return; selectPose(b.dataset.pose); });
+function renderPose() {
+  const p = curPose(), best = p.best_set.map(id => P.runs[id]);
+  const hours = best.reduce((a, r) => a + (r?.hours || 0), 0), tried = p.stages.reduce((a, s) => a + s.runs.length, 0);
+  const stats = p.stages.map((s, i) => { const r = best[i]; const t = r && testOf(r.id, s.key);
+    return `<div class="best-stat"><span class="k">${i + 1} · ${esc(s.name)}</span><span class="v">${r ? pct(r.best ?? 0) : "–"}</span>
+      <span class="d">${r ? `best check of ${r.settings.eval_episodes} · ${esc(r.id)}` : "skipped in this pose"}</span>${t ? `<span class="d">page test ${t.k}/${t.n}</span>` : ""}</div>`; }).join("");
+  $("pose").innerHTML = `<figure><img src="${esc(p.image)}" alt="${esc(p.name)}: the grip closing on the 25 mm cube, front and side views" width="1120" height="420">
+      <figcaption>The grip alone (no policy) as it closes on the 25 mm cube. Left: front. Right: side.</figcaption></figure>
+    <div class="about"><p>${esc(p.desc)}</p>
+      <div class="best"><h3>Best training set</h3><div class="best-row">${stats}</div>
+        <div class="meta"><span>${hours.toFixed(1)} h of training in this set</span><span>${tried} runs tried in this pose</span><span>pick task: 25 mm cube</span></div></div></div>`;
+}
+function spark(runs, bestId) {
+  const W = 340, Hh = 128, L = 34, Rr = 62, T = 8, B = 18, w = W - L - Rr, h = Hh - T - B;
+  const maxS = Math.max(1, ...runs.map(r => r.evals.at(-1)?.[0] || 0));
+  const x = s => L + w * s / maxS, y = v => T + h * (1 - v);
+  let g = [0, .5, 1].map(v => `<g class="grid"><line x1="${L}" x2="${L + w}" y1="${y(v)}" y2="${y(v)}"/></g><text x="${L - 5}" y="${y(v) + 3.5}" text-anchor="end">${pct(v)}</text>`).join("");
+  const gates = [...new Set(runs.map(r => r.gate))].sort((a, b) => b - a);  // labels stacked so two close gates don't overlap
+  gates.forEach((gate, k) => g += `<line x1="${L}" x2="${L + w}" y1="${y(gate)}" y2="${y(gate)}" stroke="var(--fg)" stroke-dasharray="3 3" opacity=".5"/>
+    <text x="${L + w + 4}" y="${y(gate) + (gates.length > 1 ? (k ? 11 : -3) : 3.5)}">gate ${pct(gate)}</text>`);
+  const order = runs.slice().sort((a, b) => (a.id === bestId) - (b.id === bestId));  // best drawn last, on top
+  for (const r of order) {
+    if (!r.evals.length) continue;
+    const isB = r.id === bestId, col = isB ? "var(--s1)" : "var(--neutral)", end = r.evals.at(-1);
+    g += `<path d="${svgLine(r.evals.map(p => [x(p[0]), y(p[1])]))}" fill="none" stroke="${col}" stroke-width="${isB ? 2 : 1.2}" opacity="${isB ? 1 : .8}"/>
+      <circle cx="${x(end[0])}" cy="${y(end[1])}" r="${isB ? 4 : 3}" fill="${col}" stroke="var(--panel)" stroke-width="1.5"
+        data-tip="<b>${esc(r.id)}</b><br>best check ${pct(r.best ?? 0)} · last ${pct(r.last ?? 0)}<br>${r.n_evals} checks · ${(r.steps / 1e6).toFixed(1)}M steps"/>`;
+  }
+  g += `<text x="${L}" y="${Hh - 4}">0</text><text x="${L + w}" y="${Hh - 4}" text-anchor="end">${(maxS / 1e6).toFixed(1)}M steps</text>`;
+  return `<svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="Check success over training, all runs of this stage">${g}</svg>`;
+}
+function renderFlow() {
+  const p = curPose();
+  $("flow").innerHTML = p.stages.map((s, i) => {
+    const bestId = p.best_set[i], b = P.runs[bestId], runs = s.runs.map(id => P.runs[id]).filter(Boolean);
+    const t = b && testOf(b.id, s.key), clip = b && clipOf(b.id, s.key);
+    const list = runs.slice().reverse().map(r => { const [c, txt] = statusText(r);
+      return `<div class="run"><span class="id${r.id === bestId ? " is-best" : ""}">${esc(r.id)}</span><span class="num">${r.best == null ? "–" : pct(r.best)}</span>
+        <span class="why"><span class="pill" style="--c:var(${c})">${esc(txt)}</span>${r.from ? ` · from ${esc(r.from)}` : " · from scratch"} · ${r.hours.toFixed(1)} h${r.note ? `<br>${esc(r.note)}` : ""}</span></div>`; }).join("");
+    const shared = P.poses.filter(q => q.id !== p.id && q.stages[i].runs.length && q.stages[i].runs.every(id => s.runs.includes(id))).map(q => q.short);
+    return `<li class="panel"><div class="st-head"><span class="n">Stage ${i + 1}${shared.length ? ` · shared with ${esc(shared.join(", "))}` : ""}</span><h3>${esc(s.name)}</h3><p>${esc(s.what)}</p></div>
+      ${b ? `<div class="st-best"><span class="v">${pct(b.best ?? 0)}</span><span class="d">best check (${b.settings.eval_episodes} episodes) · ${esc(b.id)}</span>
+        <span class="d">${t ? `page test ${t.k}/${t.n} (${pct(t.p)})` : "no page test yet"}</span></div>` : `<p class="muted">${runs.length ? "No run passed yet." : "Skipped: this pose went straight to picking."}</p>`}
+      ${runs.length ? `<div class="spark">${spark(runs, bestId)}</div>` : ""}
+      ${clip ? `<button class="b watch" data-clip="${clip.id}" data-setup="${clip.setup}">Watch the best attempt in 3D</button>` : ""}
+      <div class="runs"><h3 style="margin-bottom:4px">${runs.length} run${runs.length === 1 ? "" : "s"}, newest first</h3>${list}</div></li>`;
+  }).join("");
+}
+$("flow").addEventListener("click", e => {
+  const b = e.target.closest(".watch"); if (!b) return;
+  SETUP = b.dataset.setup; renderSetup(); loadClip(b.dataset.clip);
+  document.querySelector('[aria-labelledby="h-replay"]').scrollIntoView({ behavior: "smooth", block: "start" });
+});
+function renderSettings() {
+  const p = curPose(), cols = p.best_set.map(id => P.runs[id]);
+  if (!cols.length) { $("settings").innerHTML = `<tbody><tr><td>No complete training set yet.</td></tr></tbody>`; return; }
+  const row = (k, f) => `<tr><td>${k}</td>${cols.map(r => `<td class="v">${r ? f(r, r.settings) : "–"}</td>`).join("")}</tr>`;
+  $("settings").innerHTML = `<thead><tr><th>Setting</th>${p.stages.map((s, i) => `<th>${i + 1} · ${esc(s.name)}<small>${esc(cols[i]?.id || "")}</small></th>`).join("")}</tr></thead><tbody>
+    ${row("Learning rate", (r, s) => `${sci(s.lr)} start<br>adapts ${sci(s.lr_min)} – ${sci(s.lr_max)}`)}
+    ${row("Batch per update", (r, s) => `${s.rollout} steps × ${s.envs} envs = ${s.batch.toLocaleString("en")}`)}
+    ${row("Epochs × minibatches", (r, s) => `${s.epochs} × ${s.minibatches}`)}
+    ${row("KL target · clip", (r, s) => `${s.desired_kl} · ${s.clip}`)}
+    ${row("Entropy bonus", (r, s) => `${s.entropy}`)}
+    ${row("Finger range", (r, s) => `±${s.finger_range} rad`)}
+    ${row("Hand-stick contacts", (r, s) => `solref ${s.solref}${s.solref < 0.02 ? " (stiffer)" : ""}`)}
+    ${row("Starts from", r => esc(r.from || "scratch"))}
+    ${row("Checks", (r, s) => `${s.eval_episodes} episodes every ${s.eval_every} updates`)}
+    ${row("Stops when", (r, s) => `≥${pct(s.target)} on 3 checks, or ${s.plateau} checks without a new best`)}
+    ${row("Disturbances", (r, s) => s.wobble ? `pushes ${s.pushes} N, wobble ±${s.wobble}°, shake ${s.shake} m/s²` : s.pushes != null ? `pushes ${s.pushes} N` : "–")}
+    ${row("Grip", (r, s) => esc(s.grip_closed ? `${s.grip} → ${s.grip_closed}` : s.grip || "–"))}
+    ${row("Trained for", r => `${(r.steps / 1e6).toFixed(1)}M steps · ${r.hours.toFixed(1)} h`)}</tbody>`;
+}
+function selectPose(id) {
+  POSE = id; try { localStorage.setItem("chopstix-pose", id); } catch {}
+  renderPoseToggle(); renderPose(); renderFlow(); renderSettings(); renderCards(); renderTraining();
+  if (!curPose().setups.includes(SETUP)) SETUP = defaultSetup();
+  renderSetup();
+}
+function defaultSetup() {
+  const p = curPose(), pick = p.best_set.at(-1), s = pick && setupOfRun(pick, "pick");
+  return s && R.setups[s] ? s : curPose().setups.find(k => R.setups[k]) || Object.keys(R.setups)[0];
+}
+
 // ---------- boot
 (async () => {
   try {
-    [R, H] = await Promise.all([fetch("data/results.json").then(r => r.json()), fetch("data/history.json").then(r => r.json()).catch(() => [])]);
+    [R, H, P] = await Promise.all([fetch("data/results.json").then(r => r.json()), fetch("data/history.json").then(r => r.json()).catch(() => []),
+      fetch("data/poses.json").then(r => r.json())]);
   } catch (err) {
-    $("latest-note").innerHTML = `<span>Results could not load (${esc(err.message)}). Run <code>python -m chopstix.tools.report</code> and publish again.</span>`; return;
+    $("now").innerHTML = `<span>Results could not load (${esc(err.message)}). Run <code>python -m chopstix.tools.poses</code> and the report, then publish again.</span>`; return;
   }
+  let savedPose = null; try { savedPose = localStorage.getItem("chopstix-pose"); } catch {}
+  POSE = P.poses.some(p => p.id === savedPose) ? savedPose : (P.now ? P.runs[P.now].poses.at(-1) : P.poses.at(-1).id);
   let saved = null; try { saved = localStorage.getItem("chopstix-setup"); } catch {}
-  SETUP = R.setups[saved] ? saved : Object.keys(R.setups)[0];
-  renderHeader(); renderLatest(); renderGripLab(); renderHistory(); renderCards(); renderTraining(); renderGrip();
+  SETUP = R.setups[saved] && curPose().setups.includes(saved) ? saved : defaultSetup();
+  renderHeader(); renderNow(); renderPoseToggle(); renderPose(); renderFlow(); renderSettings();
+  renderGripLab(); renderHistory(); renderCards(); renderTraining(); renderGrip();
   const ok = initStage();
   renderSetup();
   if (!ok) return;

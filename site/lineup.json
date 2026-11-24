@@ -736,6 +736,42 @@
         "hold",
         "s4u_pick"
       ]
+    },
+    {
+      "id": "s4v_hold",
+      "label": "Stage 4c-1 (run 1): hg_1s125 sideways, hold under noise",
+      "from": "hg_1s125",
+      "desc": "from s4u_hold's best; gate 98%.",
+      "actor": "runs/train/s4v_hold/actor_best.pt",
+      "run": "runs/train/s4v_hold",
+      "setups": [
+        "hold",
+        "s4u_hold"
+      ]
+    },
+    {
+      "id": "s4v_openclose",
+      "label": "Stage 4c-2 (run 1): hg_1s125 sideways, open/close on command",
+      "from": "hg_1s125_open",
+      "desc": "from s4u_openclose's best; gate 98%.",
+      "actor": "runs/train/s4v_openclose/actor_best.pt",
+      "run": "runs/train/s4v_openclose",
+      "setups": [
+        "hold",
+        "s4u_openclose"
+      ]
+    },
+    {
+      "id": "s4v_openclose_2",
+      "label": "Stage 4c-2 (run 2): hg_1s125 sideways, open/close on command",
+      "from": "hg_1s125_open",
+      "desc": "from s4v_openclose's best; gate 98%.",
+      "actor": "runs/train/s4v_openclose_2/actor_best.pt",
+      "run": "runs/train/s4v_openclose_2",
+      "setups": [
+        "hold",
+        "s4u_openclose"
+      ]
     }
   ],
   "grip_labs": [
