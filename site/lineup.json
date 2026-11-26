@@ -477,6 +477,67 @@
       "clip_seeds": [
         0
       ]
+    },
+    "s4r_pick": {
+      "label": "hg_1s125 sideways: robust pick and place, 25 mm cube",
+      "desc": "Pick and place with stick pushes, cube shoves during lift and carry, cube placed up to 2 cm off and turned up to 0.4 rad, finger joint noise, and friction, cube mass and cube size varied per env.",
+      "env": {
+        "stage": "pick",
+        "hold_residual": 0.2,
+        "ball_cube": true,
+        "ball_radius": 0.0125,
+        "ball_mass": 0.005,
+        "ball_friction": 2.0,
+        "stick_friction": 2.0,
+        "pick_approach": 0.05,
+        "pick_place": true,
+        "steps_per_episode": 210,
+        "hold_joint_noise": 0.04,
+        "w_hold_squeeze": 0.5,
+        "w_hold_no_contact": 1.0,
+        "hold_force_min": 0.05,
+        "w_pick_squeeze": 1.0,
+        "w_pick_stick_lost": 1.0,
+        "w_pick_drop": 10.0,
+        "hold_grip": "hg_1s125_open",
+        "hold_grip_closed": "hg_1s125",
+        "pick_stick_pitch": 20,
+        "pick_hand_flip": true,
+        "pick_level_open": true,
+        "sim": {
+          "solref": [
+            0.0125,
+            1.0
+          ]
+        },
+        "pick_push": 0.05,
+        "pick_object_push": 0.1,
+        "pick_object_noise": 0.02,
+        "pick_object_yaw_noise": 0.4,
+        "domain_rand": {
+          "stick_friction": [
+            0.6,
+            1.4
+          ],
+          "object_friction": [
+            0.6,
+            1.4
+          ],
+          "object_mass": [
+            0.5,
+            2.0
+          ],
+          "object_size": [
+            0.88,
+            1.12
+          ]
+        },
+        "pick_restart_prob": 0.2
+      },
+      "episodes": 32,
+      "clip_seeds": [
+        0
+      ]
     }
   },
   "entries": [
@@ -503,7 +564,8 @@
         "s4t_hold",
         "s4u_hold",
         "s4u_openclose",
-        "s4u_pick"
+        "s4u_pick",
+        "s4r_pick"
       ]
     },
     {
@@ -771,6 +833,90 @@
       "setups": [
         "hold",
         "s4u_openclose"
+      ]
+    },
+    {
+      "id": "s4v_hold_2",
+      "label": "Stage 4c-1 (run 2): hg_1s125 sideways, hold under noise",
+      "from": "hg_1s125",
+      "desc": "from s4v_hold's best; gate 98%.",
+      "actor": "runs/train/s4v_hold_2/actor_best.pt",
+      "run": "runs/train/s4v_hold_2",
+      "setups": [
+        "hold",
+        "s4u_hold"
+      ]
+    },
+    {
+      "id": "s4v_openclose_3",
+      "label": "Stage 4c-2 (run 3): hg_1s125 sideways, open/close on command",
+      "from": "hg_1s125_open",
+      "desc": "from s4v_hold_2's best; gate 98%.",
+      "actor": "runs/train/s4v_openclose_3/actor_best.pt",
+      "run": "runs/train/s4v_openclose_3",
+      "setups": [
+        "hold",
+        "s4u_openclose"
+      ]
+    },
+    {
+      "id": "s4v_pick",
+      "label": "Stage 4c-3 (run 1): hg_1s125 sideways, pick and place, 25 mm cube",
+      "from": "hg_1s125_open",
+      "desc": "from s4u_pick's best; gate 98%.",
+      "actor": "runs/train/s4v_pick/actor_best.pt",
+      "run": "runs/train/s4v_pick",
+      "setups": [
+        "hold",
+        "s4u_pick"
+      ]
+    },
+    {
+      "id": "s4r_pick",
+      "label": "Stage 4d (run 1): robust pick, pushes + wide starts + random physics + restarts",
+      "from": "hg_1s125_open",
+      "desc": "From s4u_pick's best; no entropy bonus; gate 90%.",
+      "actor": "runs/train/s4r_pick/actor_best.pt",
+      "run": "runs/train/s4r_pick",
+      "setups": [
+        "hold",
+        "s4r_pick"
+      ]
+    },
+    {
+      "id": "s4r_pick_2",
+      "label": "Stage 4d (run 2): robust pick, pushes + wide starts + random physics + restarts",
+      "from": "hg_1s125_open",
+      "desc": "From s4r_pick's best; no entropy bonus; gate 90%.",
+      "actor": "runs/train/s4r_pick_2/actor_best.pt",
+      "run": "runs/train/s4r_pick_2",
+      "setups": [
+        "hold",
+        "s4r_pick"
+      ]
+    },
+    {
+      "id": "s4r_pick_3",
+      "label": "Stage 4d (run 3): robust pick, pushes + wide starts + random physics + restarts",
+      "from": "hg_1s125_open",
+      "desc": "From s4r_pick_2's best; no entropy bonus; gate 90%.",
+      "actor": "runs/train/s4r_pick_3/actor_best.pt",
+      "run": "runs/train/s4r_pick_3",
+      "setups": [
+        "hold",
+        "s4r_pick"
+      ]
+    },
+    {
+      "id": "s4r_pick_4",
+      "label": "Stage 4d (run 4): robust pick, pushes + wide starts + random physics + restarts",
+      "from": "hg_1s125_open",
+      "desc": "From s4r_pick_2's best; no entropy bonus; gate 90%.",
+      "actor": "runs/train/s4r_pick_4/actor_best.pt",
+      "run": "runs/train/s4r_pick_4",
+      "setups": [
+        "hold",
+        "s4r_pick"
       ]
     }
   ],

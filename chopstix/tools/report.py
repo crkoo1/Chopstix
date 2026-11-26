@@ -37,6 +37,8 @@ _ACTOR_CACHE: dict = {}
 def _env(overrides: dict):
     from chopstix.envs.chopsticks_env import make_env
 
+    if overrides.get("domain_rand") and overrides.get("domain_rand_seed", -1) < 0:
+        overrides = {**overrides, "domain_rand_seed": 0}  # page tests: one fixed randomized world, the same every report
     key = json.dumps(overrides, sort_keys=True)
     if key not in _ENV_CACHE:
         _ENV_CACHE[key] = make_env(overrides)

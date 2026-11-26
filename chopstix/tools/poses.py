@@ -54,6 +54,10 @@ NOTES = {  # one line on runs that were replaced or are side experiments
     "s4_level": "Sideways pose, straight to picking from scratch. Stopped: the learning rate ran away to 1e-2.",
     "s4l_hold": "Finger range ±0.1 rad, lr cap 1e-4: stuck at 80%. The sticks crept through the fingers under wobble.",
     "s4t_hold": "Finger range ±0.2 rad, lr cap 3e-4: still 80%. Fixed next by stiffer contacts (s4u).",
+    "s4r_pick": "Robustness run: stick pushes, cube shoves, wider starts, random physics, restarts from slips; no entropy bonus.",
+    "s4r_pick_2": "Robustness run, retry from the best robust policy.",
+    "s4r_pick_3": "Robustness run, retry.",
+    "s4r_pick_4": "Robustness run, last retry.",
 }
 
 
