@@ -1,0 +1,2577 @@
+[
+ {
+  "time": "2026-11-21T21:58:21-0500",
+  "commit": "f7ac82e",
+  "note": "Steps 1-2: MuJoCo scene, grip closed_v5_mj re-formed and checked, hold/pick env ported. No trained policy yet.",
+  "results": {
+   "scripted": {
+    "hold": {
+     "success": {
+      "k": 30,
+      "n": 32,
+      "p": 0.9375,
+      "ci": [
+       0.7985,
+       0.9827
+      ]
+     },
+     "mean_return": 532.5
+    },
+    "pick": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 277.7
+    }
+   }
+  },
+  "grip_hold": 1.0
+ },
+ {
+  "time": "2026-11-21T22:33:13-0500",
+  "commit": "cbd77d3",
+  "note": "Grip improved: closed_v5_mj2 (firmer thumb and ring-finger pinch on the lower stick) + 0.15 s finger-target lag. Grip lab: holds in all 9 gravity poses, pushes to 0.2 N, finger jitter to 0.03 rad (old grip: 0.1 N, 0.005 rad). Stick rotation is now judged by axis tilt (spin about a round stick is harmless), in the grip lab and the env.",
+  "results": {
+   "scripted": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.2
+    },
+    "pick": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 259.6
+    }
+   }
+  },
+  "grip_hold": null,
+  "grip_lab": {
+   "gravity_poses_held": 9,
+   "gravity_poses": 9,
+   "grip_pose_held": true,
+   "pick_pose_held": true,
+   "max_push_N": 0.2,
+   "max_push_pick_N": 0.2,
+   "max_jitter_rad": 0.03,
+   "max_start_rad": 0.06,
+   "max_friction_use": 0.686,
+   "max_finger_force_N": 5.33,
+   "grip": "closed_v5_mj2"
+  }
+ },
+ {
+  "time": "2026-11-21T23:16:22-0500",
+  "commit": "20e3d04",
+  "note": "Grip lab expanded (palm path, shaking, wobble, heavier sticks, slippery fingers, step size; pushes to 0.5 N, jitter to 0.08 rad). Stronger grips tested: closed_v5_mj4 (~10.5 N) is the new training default: every test passes except palm wobble (45% at 5 deg).",
+  "results": {
+   "scripted": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.7
+    },
+    "pick": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 257.9
+    }
+   }
+  },
+  "grip_hold": null,
+  "grip_lab": {
+   "gravity_poses_held": 9,
+   "gravity_poses": 9,
+   "grip_pose_held": true,
+   "pick_pose_held": true,
+   "max_friction_use": 0.876,
+   "max_finger_force_N": 10.55,
+   "max_push_N": 0.5,
+   "max_push_pick_N": 0.5,
+   "max_jitter_rad": 0.05,
+   "max_start_rad": 0.1,
+   "held_path": 4.0,
+   "held_shake": 30.0,
+   "held_wobble": 0.0,
+   "held_mass": 0.03,
+   "held_friction": 0.3,
+   "held_timestep": 0.01,
+   "grip": "closed_v5_mj4"
+  }
+ },
+ {
+  "time": "2026-11-22T15:07:45-0500",
+  "commit": "1d0dd4f",
+  "note": "New test: pick and place with the open/close grip (open68 -> sq35). Grip alone 4/32; stage 2 policy (s2_openclose_v2, never trained on picking) 14/32. Merged duplicate tabs.",
+  "results": {
+   "scripted": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.7
+    },
+    "pick": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 214.9
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 509.3
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 13,
+      "n": 32,
+      "p": 0.4062,
+      "ci": [
+       0.2552,
+       0.5774
+      ]
+     },
+     "mean_return": 480.3
+    },
+    "pick_oc": {
+     "success": {
+      "k": 4,
+      "n": 32,
+      "p": 0.125,
+      "ci": [
+       0.0497,
+       0.2807
+      ]
+     },
+     "mean_return": 222.6
+    }
+   },
+   "s1_hold": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.8
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 506.9
+    }
+   },
+   "s2_openclose": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 435.6
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 20,
+      "n": 32,
+      "p": 0.625,
+      "ci": [
+       0.4525,
+       0.7707
+      ]
+     },
+     "mean_return": 541.8
+    }
+   },
+   "s2_openclose_v2": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 432.1
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 539.1
+    },
+    "pick_oc": {
+     "success": {
+      "k": 14,
+      "n": 32,
+      "p": 0.4375,
+      "ci": [
+       0.2817,
+       0.6067
+      ]
+     },
+     "mean_return": 686.7
+    }
+   },
+   "s1_hold95": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 596.4
+    },
+    "s1_hold": {
+     "success": {
+      "k": 27,
+      "n": 32,
+      "p": 0.8438,
+      "ci": [
+       0.6825,
+       0.9314
+      ]
+     },
+     "mean_return": 505.1
+    }
+   },
+   "s2_openclose_b": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 600.8
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 450.9
+    }
+   }
+  },
+  "grip_hold": null,
+  "grip_lab": {
+   "gravity_poses_held": 9,
+   "gravity_poses": 9,
+   "grip_pose_held": true,
+   "pick_pose_held": true,
+   "max_friction_use": 0.876,
+   "max_finger_force_N": 10.55,
+   "max_push_N": 0.5,
+   "max_push_pick_N": 0.5,
+   "max_jitter_rad": 0.05,
+   "max_start_rad": 0.1,
+   "held_path": 4.0,
+   "held_shake": 30.0,
+   "held_wobble": 0.0,
+   "held_mass": 0.03,
+   "held_friction": 0.3,
+   "held_timestep": 0.01,
+   "grip": "closed_v5_mj4"
+  }
+ },
+ {
+  "time": "2026-11-22T16:54:24-0500",
+  "commit": "1d0dd4f",
+  "note": "Stage 3 done: pick and place with the open/close grip reached 90%+ on 3 evals in a row (s3_pick); 31/32 on the fixed test vs 14/32 before. Next: sticks 15 deg (s3_pick15); tighter grip search for a 20 mm cube.",
+  "results": {
+   "scripted": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.7
+    },
+    "pick": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 214.9
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 509.3
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 13,
+      "n": 32,
+      "p": 0.4062,
+      "ci": [
+       0.2552,
+       0.5774
+      ]
+     },
+     "mean_return": 480.3
+    },
+    "pick_oc": {
+     "success": {
+      "k": 4,
+      "n": 32,
+      "p": 0.125,
+      "ci": [
+       0.0497,
+       0.2807
+      ]
+     },
+     "mean_return": 222.6
+    }
+   },
+   "s1_hold": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.8
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 506.9
+    }
+   },
+   "s2_openclose": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 435.6
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 20,
+      "n": 32,
+      "p": 0.625,
+      "ci": [
+       0.4525,
+       0.7707
+      ]
+     },
+     "mean_return": 541.8
+    }
+   },
+   "s2_openclose_v2": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 432.1
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 539.1
+    },
+    "pick_oc": {
+     "success": {
+      "k": 14,
+      "n": 32,
+      "p": 0.4375,
+      "ci": [
+       0.2817,
+       0.6067
+      ]
+     },
+     "mean_return": 686.7
+    }
+   },
+   "s1_hold95": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 596.4
+    },
+    "s1_hold": {
+     "success": {
+      "k": 27,
+      "n": 32,
+      "p": 0.8438,
+      "ci": [
+       0.6825,
+       0.9314
+      ]
+     },
+     "mean_return": 505.1
+    }
+   },
+   "s2_openclose_b": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 600.8
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 450.9
+    }
+   },
+   "s3_pick": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 482.7
+    },
+    "pick_oc": {
+     "success": {
+      "k": 31,
+      "n": 32,
+      "p": 0.9688,
+      "ci": [
+       0.8426,
+       0.9945
+      ]
+     },
+     "mean_return": 938.8
+    }
+   }
+  },
+  "grip_hold": null,
+  "grip_lab": {
+   "gravity_poses_held": 9,
+   "gravity_poses": 9,
+   "grip_pose_held": true,
+   "pick_pose_held": true,
+   "max_friction_use": 0.876,
+   "max_finger_force_N": 10.55,
+   "max_push_N": 0.5,
+   "max_push_pick_N": 0.5,
+   "max_jitter_rad": 0.05,
+   "max_start_rad": 0.1,
+   "held_path": 4.0,
+   "held_shake": 30.0,
+   "held_wobble": 0.0,
+   "held_mass": 0.03,
+   "held_friction": 0.3,
+   "held_timestep": 0.01,
+   "grip": "closed_v5_mj4"
+  }
+ },
+ {
+  "time": "2026-11-22T18:29:28-0500",
+  "commit": "1d0dd4f",
+  "note": "Stage 3b done: sticks 15 deg below horizontal (was ~31), 30 mm cube (s3_pick15); evals 100/100/96%. 20 mm cube waits for a tighter grip.",
+  "results": {
+   "scripted": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.7
+    },
+    "pick": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 214.9
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 509.3
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 13,
+      "n": 32,
+      "p": 0.4062,
+      "ci": [
+       0.2552,
+       0.5774
+      ]
+     },
+     "mean_return": 480.3
+    },
+    "pick_oc": {
+     "success": {
+      "k": 4,
+      "n": 32,
+      "p": 0.125,
+      "ci": [
+       0.0497,
+       0.2807
+      ]
+     },
+     "mean_return": 222.6
+    },
+    "s3_pick15": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 444.7
+    }
+   },
+   "s1_hold": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.8
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 506.9
+    }
+   },
+   "s2_openclose": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 435.6
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 20,
+      "n": 32,
+      "p": 0.625,
+      "ci": [
+       0.4525,
+       0.7707
+      ]
+     },
+     "mean_return": 541.8
+    }
+   },
+   "s2_openclose_v2": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 432.1
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 539.1
+    },
+    "pick_oc": {
+     "success": {
+      "k": 14,
+      "n": 32,
+      "p": 0.4375,
+      "ci": [
+       0.2817,
+       0.6067
+      ]
+     },
+     "mean_return": 686.7
+    }
+   },
+   "s1_hold95": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 596.4
+    },
+    "s1_hold": {
+     "success": {
+      "k": 27,
+      "n": 32,
+      "p": 0.8438,
+      "ci": [
+       0.6825,
+       0.9314
+      ]
+     },
+     "mean_return": 505.1
+    }
+   },
+   "s2_openclose_b": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 600.8
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 450.9
+    }
+   },
+   "s3_pick": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 482.7
+    },
+    "pick_oc": {
+     "success": {
+      "k": 31,
+      "n": 32,
+      "p": 0.9688,
+      "ci": [
+       0.8426,
+       0.9945
+      ]
+     },
+     "mean_return": 938.8
+    }
+   },
+   "s3_pick15": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 507.9
+    },
+    "s3_pick15": {
+     "success": {
+      "k": 29,
+      "n": 32,
+      "p": 0.9062,
+      "ci": [
+       0.7578,
+       0.9676
+      ]
+     },
+     "mean_return": 969.5
+    }
+   }
+  },
+  "grip_hold": null,
+  "grip_lab": {
+   "gravity_poses_held": 9,
+   "gravity_poses": 9,
+   "grip_pose_held": true,
+   "pick_pose_held": true,
+   "max_friction_use": 0.876,
+   "max_finger_force_N": 10.55,
+   "max_push_N": 0.5,
+   "max_push_pick_N": 0.5,
+   "max_jitter_rad": 0.05,
+   "max_start_rad": 0.1,
+   "held_path": 4.0,
+   "held_shake": 30.0,
+   "held_wobble": 0.0,
+   "held_mass": 0.03,
+   "held_friction": 0.3,
+   "held_timestep": 0.01,
+   "grip": "closed_v5_mj4"
+  }
+ },
+ {
+  "time": "2026-11-22T22:06:33-0500",
+  "commit": "1d0dd4f",
+  "note": "Harder pick (s3_pick_hard: cube +-1.5 cm / +-17 deg, 0.02 N pushes) stopped at a plateau, best eval 54%; 20 mm grip search stopped (nothing held in the pick pose); now training a 25 mm cube (s3_pick25).",
+  "results": {
+   "scripted": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.7
+    },
+    "pick": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 214.9
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 509.3
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 13,
+      "n": 32,
+      "p": 0.4062,
+      "ci": [
+       0.2552,
+       0.5774
+      ]
+     },
+     "mean_return": 480.3
+    },
+    "pick_oc": {
+     "success": {
+      "k": 4,
+      "n": 32,
+      "p": 0.125,
+      "ci": [
+       0.0497,
+       0.2807
+      ]
+     },
+     "mean_return": 222.6
+    },
+    "s3_pick15": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 444.7
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 5,
+      "n": 32,
+      "p": 0.1562,
+      "ci": [
+       0.0686,
+       0.3175
+      ]
+     },
+     "mean_return": 283.2
+    },
+    "s3_pick25": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 113.0
+    }
+   },
+   "s1_hold": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.8
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 506.9
+    }
+   },
+   "s2_openclose": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 435.6
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 20,
+      "n": 32,
+      "p": 0.625,
+      "ci": [
+       0.4525,
+       0.7707
+      ]
+     },
+     "mean_return": 541.8
+    }
+   },
+   "s2_openclose_v2": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 432.1
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 539.1
+    },
+    "pick_oc": {
+     "success": {
+      "k": 14,
+      "n": 32,
+      "p": 0.4375,
+      "ci": [
+       0.2817,
+       0.6067
+      ]
+     },
+     "mean_return": 686.7
+    }
+   },
+   "s1_hold95": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 596.4
+    },
+    "s1_hold": {
+     "success": {
+      "k": 27,
+      "n": 32,
+      "p": 0.8438,
+      "ci": [
+       0.6825,
+       0.9314
+      ]
+     },
+     "mean_return": 505.1
+    }
+   },
+   "s2_openclose_b": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 600.8
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 450.9
+    }
+   },
+   "s3_pick": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 482.7
+    },
+    "pick_oc": {
+     "success": {
+      "k": 31,
+      "n": 32,
+      "p": 0.9688,
+      "ci": [
+       0.8426,
+       0.9945
+      ]
+     },
+     "mean_return": 938.8
+    }
+   },
+   "s3_pick15": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 507.9
+    },
+    "s3_pick15": {
+     "success": {
+      "k": 29,
+      "n": 32,
+      "p": 0.9062,
+      "ci": [
+       0.7578,
+       0.9676
+      ]
+     },
+     "mean_return": 969.5
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 726.0
+    }
+   },
+   "s3_pick_hard": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 490.8
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 733.0
+    }
+   },
+   "s3_pick25": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 503.8
+    },
+    "s3_pick25": {
+     "success": {
+      "k": 10,
+      "n": 32,
+      "p": 0.3125,
+      "ci": [
+       0.1795,
+       0.4857
+      ]
+     },
+     "mean_return": 446.8
+    }
+   }
+  },
+  "grip_hold": null,
+  "grip_lab": {
+   "gravity_poses_held": 9,
+   "gravity_poses": 9,
+   "grip_pose_held": true,
+   "pick_pose_held": true,
+   "max_friction_use": 0.876,
+   "max_finger_force_N": 10.55,
+   "max_push_N": 0.5,
+   "max_push_pick_N": 0.5,
+   "max_jitter_rad": 0.05,
+   "max_start_rad": 0.1,
+   "held_path": 4.0,
+   "held_shake": 30.0,
+   "held_wobble": 0.0,
+   "held_mass": 0.03,
+   "held_friction": 0.3,
+   "held_timestep": 0.01,
+   "grip": "closed_v5_mj4"
+  }
+ },
+ {
+  "time": "2026-11-22T23:47:59-0500",
+  "commit": "1d0dd4f",
+  "note": "25 mm cube (s3_pick25) stopped at a plateau, best eval 71%; from 3/32 untrained.",
+  "results": {
+   "scripted": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.7
+    },
+    "pick": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 214.9
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 509.3
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 13,
+      "n": 32,
+      "p": 0.4062,
+      "ci": [
+       0.2552,
+       0.5774
+      ]
+     },
+     "mean_return": 480.3
+    },
+    "pick_oc": {
+     "success": {
+      "k": 4,
+      "n": 32,
+      "p": 0.125,
+      "ci": [
+       0.0497,
+       0.2807
+      ]
+     },
+     "mean_return": 222.6
+    },
+    "s3_pick15": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 444.7
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 5,
+      "n": 32,
+      "p": 0.1562,
+      "ci": [
+       0.0686,
+       0.3175
+      ]
+     },
+     "mean_return": 283.2
+    },
+    "s3_pick25": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 113.0
+    }
+   },
+   "s1_hold": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.8
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 506.9
+    }
+   },
+   "s2_openclose": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 435.6
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 20,
+      "n": 32,
+      "p": 0.625,
+      "ci": [
+       0.4525,
+       0.7707
+      ]
+     },
+     "mean_return": 541.8
+    }
+   },
+   "s2_openclose_v2": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 432.1
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 539.1
+    },
+    "pick_oc": {
+     "success": {
+      "k": 14,
+      "n": 32,
+      "p": 0.4375,
+      "ci": [
+       0.2817,
+       0.6067
+      ]
+     },
+     "mean_return": 686.7
+    }
+   },
+   "s1_hold95": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 596.4
+    },
+    "s1_hold": {
+     "success": {
+      "k": 27,
+      "n": 32,
+      "p": 0.8438,
+      "ci": [
+       0.6825,
+       0.9314
+      ]
+     },
+     "mean_return": 505.1
+    }
+   },
+   "s2_openclose_b": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 600.8
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 450.9
+    }
+   },
+   "s3_pick": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 482.7
+    },
+    "pick_oc": {
+     "success": {
+      "k": 31,
+      "n": 32,
+      "p": 0.9688,
+      "ci": [
+       0.8426,
+       0.9945
+      ]
+     },
+     "mean_return": 938.8
+    }
+   },
+   "s3_pick15": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 507.9
+    },
+    "s3_pick15": {
+     "success": {
+      "k": 29,
+      "n": 32,
+      "p": 0.9062,
+      "ci": [
+       0.7578,
+       0.9676
+      ]
+     },
+     "mean_return": 969.5
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 726.0
+    }
+   },
+   "s3_pick_hard": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 490.8
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 733.0
+    }
+   },
+   "s3_pick25": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 479.2
+    },
+    "s3_pick25": {
+     "success": {
+      "k": 20,
+      "n": 32,
+      "p": 0.625,
+      "ci": [
+       0.4525,
+       0.7707
+      ]
+     },
+     "mean_return": 689.2
+    }
+   }
+  },
+  "grip_hold": null,
+  "grip_lab": {
+   "gravity_poses_held": 9,
+   "gravity_poses": 9,
+   "grip_pose_held": true,
+   "pick_pose_held": true,
+   "max_friction_use": 0.876,
+   "max_finger_force_N": 10.55,
+   "max_push_N": 0.5,
+   "max_push_pick_N": 0.5,
+   "max_jitter_rad": 0.05,
+   "max_start_rad": 0.1,
+   "held_path": 4.0,
+   "held_shake": 30.0,
+   "held_wobble": 0.0,
+   "held_mass": 0.03,
+   "held_friction": 0.3,
+   "held_timestep": 0.01,
+   "grip": "closed_v5_mj4"
+  }
+ },
+ {
+  "time": "2026-11-23T01:43:45-0500",
+  "commit": "1d0dd4f",
+  "note": "25 mm cube with 0.2 rad finger range (s3_pick25r) stopped at a plateau, best eval 57%: fewer missed pinches but more drops; worse than s3_pick25 (0.1 rad, 71%).",
+  "results": {
+   "scripted": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.7
+    },
+    "pick": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 214.9
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 509.3
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 13,
+      "n": 32,
+      "p": 0.4062,
+      "ci": [
+       0.2552,
+       0.5774
+      ]
+     },
+     "mean_return": 480.3
+    },
+    "pick_oc": {
+     "success": {
+      "k": 4,
+      "n": 32,
+      "p": 0.125,
+      "ci": [
+       0.0497,
+       0.2807
+      ]
+     },
+     "mean_return": 222.6
+    },
+    "s3_pick15": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 444.7
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 5,
+      "n": 32,
+      "p": 0.1562,
+      "ci": [
+       0.0686,
+       0.3175
+      ]
+     },
+     "mean_return": 283.2
+    },
+    "s3_pick25": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 113.0
+    },
+    "s3_pick25r": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 113.0
+    }
+   },
+   "s1_hold": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.8
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 506.9
+    }
+   },
+   "s2_openclose": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 435.6
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 20,
+      "n": 32,
+      "p": 0.625,
+      "ci": [
+       0.4525,
+       0.7707
+      ]
+     },
+     "mean_return": 541.8
+    }
+   },
+   "s2_openclose_v2": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 432.1
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 539.1
+    },
+    "pick_oc": {
+     "success": {
+      "k": 14,
+      "n": 32,
+      "p": 0.4375,
+      "ci": [
+       0.2817,
+       0.6067
+      ]
+     },
+     "mean_return": 686.7
+    }
+   },
+   "s1_hold95": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 596.4
+    },
+    "s1_hold": {
+     "success": {
+      "k": 27,
+      "n": 32,
+      "p": 0.8438,
+      "ci": [
+       0.6825,
+       0.9314
+      ]
+     },
+     "mean_return": 505.1
+    }
+   },
+   "s2_openclose_b": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 600.8
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 450.9
+    }
+   },
+   "s3_pick": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 482.7
+    },
+    "pick_oc": {
+     "success": {
+      "k": 31,
+      "n": 32,
+      "p": 0.9688,
+      "ci": [
+       0.8426,
+       0.9945
+      ]
+     },
+     "mean_return": 938.8
+    }
+   },
+   "s3_pick15": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 507.9
+    },
+    "s3_pick15": {
+     "success": {
+      "k": 29,
+      "n": 32,
+      "p": 0.9062,
+      "ci": [
+       0.7578,
+       0.9676
+      ]
+     },
+     "mean_return": 969.5
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 726.0
+    }
+   },
+   "s3_pick_hard": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 490.8
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 733.0
+    }
+   },
+   "s3_pick25": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 479.2
+    },
+    "s3_pick25": {
+     "success": {
+      "k": 20,
+      "n": 32,
+      "p": 0.625,
+      "ci": [
+       0.4525,
+       0.7707
+      ]
+     },
+     "mean_return": 689.2
+    },
+    "s3_pick25r": {
+     "success": {
+      "k": 17,
+      "n": 32,
+      "p": 0.5312,
+      "ci": [
+       0.3645,
+       0.6913
+      ]
+     },
+     "mean_return": 612.3
+    }
+   },
+   "s3_pick25r": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 519.1
+    },
+    "s3_pick25r": {
+     "success": {
+      "k": 14,
+      "n": 32,
+      "p": 0.4375,
+      "ci": [
+       0.2817,
+       0.6067
+      ]
+     },
+     "mean_return": 629.0
+    }
+   }
+  },
+  "grip_hold": null,
+  "grip_lab": {
+   "gravity_poses_held": 9,
+   "gravity_poses": 9,
+   "grip_pose_held": true,
+   "pick_pose_held": true,
+   "max_friction_use": 0.876,
+   "max_finger_force_N": 10.55,
+   "max_push_N": 0.5,
+   "max_push_pick_N": 0.5,
+   "max_jitter_rad": 0.05,
+   "max_start_rad": 0.1,
+   "held_path": 4.0,
+   "held_shake": 30.0,
+   "held_wobble": 0.0,
+   "held_mass": 0.03,
+   "held_friction": 0.3,
+   "held_timestep": 0.01,
+   "grip": "closed_v5_mj4"
+  }
+ },
+ {
+  "time": "2026-11-23T06:31:28-0500",
+  "commit": "1d0dd4f",
+  "note": "25 mm cube continued (s3_pick25b, 56-episode evals, 60-eval plateau): best eval 88%, best policy of the night for the 25 mm cube.",
+  "results": {
+   "scripted": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.7
+    },
+    "pick": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 214.9
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 509.3
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 13,
+      "n": 32,
+      "p": 0.4062,
+      "ci": [
+       0.2552,
+       0.5774
+      ]
+     },
+     "mean_return": 480.3
+    },
+    "pick_oc": {
+     "success": {
+      "k": 4,
+      "n": 32,
+      "p": 0.125,
+      "ci": [
+       0.0497,
+       0.2807
+      ]
+     },
+     "mean_return": 222.6
+    },
+    "s3_pick15": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 444.7
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 5,
+      "n": 32,
+      "p": 0.1562,
+      "ci": [
+       0.0686,
+       0.3175
+      ]
+     },
+     "mean_return": 283.2
+    },
+    "s3_pick25": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 113.0
+    },
+    "s3_pick25r": {
+     "success": {
+      "k": 0,
+      "n": 32,
+      "p": 0.0,
+      "ci": [
+       0.0,
+       0.1072
+      ]
+     },
+     "mean_return": 113.0
+    }
+   },
+   "s1_hold": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 601.8
+    },
+    "s1_hold": {
+     "success": {
+      "k": 28,
+      "n": 32,
+      "p": 0.875,
+      "ci": [
+       0.7193,
+       0.9503
+      ]
+     },
+     "mean_return": 506.9
+    }
+   },
+   "s2_openclose": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 435.6
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 20,
+      "n": 32,
+      "p": 0.625,
+      "ci": [
+       0.4525,
+       0.7707
+      ]
+     },
+     "mean_return": 541.8
+    }
+   },
+   "s2_openclose_v2": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 432.1
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 539.1
+    },
+    "pick_oc": {
+     "success": {
+      "k": 14,
+      "n": 32,
+      "p": 0.4375,
+      "ci": [
+       0.2817,
+       0.6067
+      ]
+     },
+     "mean_return": 686.7
+    }
+   },
+   "s1_hold95": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 596.4
+    },
+    "s1_hold": {
+     "success": {
+      "k": 27,
+      "n": 32,
+      "p": 0.8438,
+      "ci": [
+       0.6825,
+       0.9314
+      ]
+     },
+     "mean_return": 505.1
+    }
+   },
+   "s2_openclose_b": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 600.8
+    },
+    "s2_openclose": {
+     "success": {
+      "k": 11,
+      "n": 32,
+      "p": 0.3438,
+      "ci": [
+       0.2041,
+       0.5169
+      ]
+     },
+     "mean_return": 450.9
+    }
+   },
+   "s3_pick": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 482.7
+    },
+    "pick_oc": {
+     "success": {
+      "k": 31,
+      "n": 32,
+      "p": 0.9688,
+      "ci": [
+       0.8426,
+       0.9945
+      ]
+     },
+     "mean_return": 938.8
+    }
+   },
+   "s3_pick15": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 507.9
+    },
+    "s3_pick15": {
+     "success": {
+      "k": 29,
+      "n": 32,
+      "p": 0.9062,
+      "ci": [
+       0.7578,
+       0.9676
+      ]
+     },
+     "mean_return": 969.5
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 726.0
+    }
+   },
+   "s3_pick_hard": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 490.8
+    },
+    "s3_pick_hard": {
+     "success": {
+      "k": 21,
+      "n": 32,
+      "p": 0.6562,
+      "ci": [
+       0.4831,
+       0.7959
+      ]
+     },
+     "mean_return": 733.0
+    }
+   },
+   "s3_pick25": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 479.2
+    },
+    "s3_pick25": {
+     "success": {
+      "k": 20,
+      "n": 32,
+      "p": 0.625,
+      "ci": [
+       0.4525,
+       0.7707
+      ]
+     },
+     "mean_return": 689.2
+    },
+    "s3_pick25r": {
+     "success": {
+      "k": 17,
+      "n": 32,
+      "p": 0.5312,
+      "ci": [
+       0.3645,
+       0.6913
+      ]
+     },
+     "mean_return": 612.3
+    }
+   },
+   "s3_pick25r": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 519.1
+    },
+    "s3_pick25r": {
+     "success": {
+      "k": 14,
+      "n": 32,
+      "p": 0.4375,
+      "ci": [
+       0.2817,
+       0.6067
+      ]
+     },
+     "mean_return": 629.0
+    }
+   },
+   "s3_pick25b": {
+    "hold": {
+     "success": {
+      "k": 32,
+      "n": 32,
+      "p": 1.0,
+      "ci": [
+       0.8928,
+       1.0
+      ]
+     },
+     "mean_return": 541.7
+    },
+    "s3_pick25": {
+     "success": {
+      "k": 26,
+      "n": 32,
+      "p": 0.8125,
+      "ci": [
+       0.6469,
+       0.9111
+      ]
+     },
+     "mean_return": 879.4
+    }
+   }
+  },
+  "grip_hold": null,
+  "grip_lab": {
+   "gravity_poses_held": 9,
+   "gravity_poses": 9,
+   "grip_pose_held": true,
+   "pick_pose_held": true,
+   "max_friction_use": 0.876,
+   "max_finger_force_N": 10.55,
+   "max_push_N": 0.5,
+   "max_push_pick_N": 0.5,
+   "max_jitter_rad": 0.05,
+   "max_start_rad": 0.1,
+   "held_path": 4.0,
+   "held_shake": 30.0,
+   "held_wobble": 0.0,
+   "held_mass": 0.03,
+   "held_friction": 0.3,
+   "held_timestep": 0.01,
+   "grip": "closed_v5_mj4"
+  }
+ }
+]

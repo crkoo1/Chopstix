@@ -6,3 +6,11 @@ __pycache__/
 logs/
 __pycache__/
 *.pyc
+
+# MuJoCo branch
+runs/
+*.egg-info/
+chopstix/grips/search_*.json
+runs/griplab/*_probe*.json
+MUJOCO_LOG.TXT
+chopstix/grips/hg_tmp_*.json

@@ -1,0 +1,1176 @@
+<title>Chopstix Results</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a lab notebook for one robot hand. Latest check and history first, then one test setup at a time
+   (how far episodes get, how they end, over time), then the 3-D replay of the actual attempts. */
+:root {
+  --bg: #f3f4f1; --panel: #fcfcfb; --fg: #1b1d1a; --muted: #5d625a; --line: #dfe1dc; --soft: #eceee9;
+  --stage: #e3e6e1; --stick: #b5652b;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #6250d6; --s8: #e34948;
+  --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --critical: #d03b3b; --neutral: #a7aaa2;
+  --head: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --ui: "Inter", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121311; --panel: #1a1a19; --fg: #eeefea; --muted: #a4a89f; --line: #2c2e2a; --soft: #222420;
+  --stage: #1d1f1c; --stick: #d98a4e;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #0ca30c; --s7: #9085e9; --s8: #e66767; --neutral: #6c7068; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121311; --panel: #1a1a19; --fg: #eeefea; --muted: #a4a89f; --line: #2c2e2a; --soft: #222420;
+  --stage: #1d1f1c; --stick: #d98a4e;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #0ca30c; --s7: #9085e9; --s8: #e66767; --neutral: #6c7068; color-scheme: dark }
+
+body { background: var(--bg); color: var(--fg); font: 14px/1.55 var(--ui); }
+main { max-width: 1180px; margin: 0 auto; padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--head); text-wrap: balance; margin: 0; }
+h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+h3 { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-family: var(--ui); }
+p { margin: 0; max-width: 68ch; }
+.muted { color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+section { display: grid; gap: 14px; min-width: 0; }
+.sec-head { display: grid; gap: 4px; }
+.sec-head p { color: var(--muted); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; min-width: 0; }
+
+header.top { display: grid; gap: 8px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.mark { width: 34px; height: 34px; flex: none; }
+.sub { font: 12px var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+
+/* latest check */
+.latest { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr); gap: 16px; }
+@media (max-width: 820px) { .latest { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 8px; align-content: start; }
+.note .when { font: 12px var(--mono); color: var(--muted); }
+.note blockquote { margin: 0; font-size: 15px; line-height: 1.5; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.tile { display: grid; gap: 4px; align-content: start; padding: 14px; border-radius: 8px; background: var(--soft); }
+.tile .k { font: 600 11px var(--ui); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.tile .v { font: 600 28px var(--head); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.tile .d { font: 12px var(--mono); color: var(--muted); }
+.delta.up { color: var(--good); } .delta.down { color: var(--critical); }
+
+/* tabs */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tab { font: 500 13px var(--ui); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 7px 14px; cursor: pointer; }
+.tab[aria-selected="true"] { border-color: var(--fg); box-shadow: inset 0 -2px 0 var(--fg); }
+.tab:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+.setup-desc { color: var(--muted); max-width: 90ch; }
+
+/* cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.card { display: grid; gap: 8px; align-content: start; }
+.card .top { display: flex; align-items: center; gap: 8px; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; background: var(--c); }
+.card b { font: 600 15px var(--head); }
+.tag { font: 500 11px var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; }
+.card dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; font-size: 13px; }
+.card dt { color: var(--muted); } .card dd { margin: 0; font: 13px var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+
+/* charts */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 16px; }
+.chart-title { font: 600 13px var(--ui); margin-bottom: 2px; }
+.chart-cap { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+svg text { fill: var(--muted); font: 11px var(--mono); }
+svg .axis line, svg .grid line { stroke: var(--line); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); display: inline-block; }
+.run-toggles { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: center; }
+.run-toggles .chip { display: inline-flex; align-items: center; gap: 6px; font: 12px var(--ui); color: var(--fg); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.run-toggles .chip i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); display: inline-block; }
+.run-toggles .chip[aria-pressed="false"] { color: var(--muted); }
+.run-toggles .chip[aria-pressed="false"] i { background: transparent; box-shadow: inset 0 0 0 1.5px var(--c); }
+.run-toggles .chip[aria-pressed="true"] { border-color: var(--fg); }
+.run-toggles .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
+.run-toggles label { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); cursor: pointer; }
+
+.ms { display: grid; gap: 12px; }
+.ms-row { display: grid; grid-template-columns: minmax(120px, 220px) minmax(0, 1fr); gap: 4px 14px; align-items: center; }
+@media (max-width: 560px) { .ms-row { grid-template-columns: minmax(0, 1fr); } }
+.ms-row > span { font-size: 13px; }
+.bars { display: grid; gap: 4px; }
+.barline { display: grid; grid-template-columns: minmax(0, 1fr) 118px; gap: 10px; align-items: center; }
+.track { position: relative; height: 12px; background: var(--soft); border-radius: 4px; }
+.fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--c); min-width: 2px; }
+.ci { position: absolute; top: 5px; height: 2px; background: var(--fg); opacity: .55; }
+.ci::before, .ci::after { content: ""; position: absolute; top: -3px; width: 1.5px; height: 8px; background: var(--fg); }
+.ci::before { left: 0; } .ci::after { right: 0; }
+.barline .num { font: 12px var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+
+.stack-row { display: grid; grid-template-columns: minmax(90px, 160px) minmax(0, 1fr); gap: 12px; align-items: center; }
+.stack { display: flex; gap: 2px; height: 22px; }
+.stack div { background: var(--c); min-width: 3px; }
+.stack div:first-child { border-radius: 4px 0 0 4px; } .stack div:last-child { border-radius: 0 4px 4px 0; }
+.stack div:only-child { border-radius: 4px; }
+.strip { display: flex; flex-wrap: wrap; gap: 3px; }
+.strip span { width: 14px; height: 14px; border-radius: 3px; background: var(--c); cursor: default; }
+.outcomes-legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 16px; font-size: 13px; }
+.outcomes-legend div { display: flex; gap: 8px; align-items: baseline; }
+.outcomes-legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; transform: translateY(1px); }
+.outcomes-legend .n { margin-left: auto; font: 12px var(--mono); color: var(--muted); white-space: nowrap; }
+
+.empty { border: 1px dashed var(--line); border-radius: 8px; padding: 18px; color: var(--muted); display: grid; gap: 6px; }
+.empty code { font: 12px var(--mono); color: var(--fg); background: var(--soft); padding: 2px 6px; border-radius: 4px; overflow-wrap: anywhere; }
+
+.history { display: grid; gap: 10px; }
+.timeline { display: grid; gap: 0; }
+.tl-item { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; }
+.tl-dot { position: relative; }
+.tl-dot::before { content: ""; position: absolute; left: 6px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--fg); }
+.tl-dot::after { content: ""; position: absolute; left: 10.5px; top: 18px; bottom: -6px; width: 1px; background: var(--line); }
+.tl-item:last-child .tl-dot::after { display: none; }
+.tl-body { padding-bottom: 14px; display: grid; gap: 2px; }
+.tl-body .when { font: 12px var(--mono); color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.chip { font: 12px var(--mono); padding: 1px 8px; border-radius: 99px; background: var(--soft); font-variant-numeric: tabular-nums; }
+
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font: 600 11px var(--ui); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+.scroll { overflow-x: auto; }
+.pill { display: inline-flex; align-items: center; gap: 5px; font: 600 11px var(--ui); letter-spacing: .04em; text-transform: uppercase; }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+
+/* replay */
+.replay { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 14px; align-items: start; }
+@media (max-width: 900px) { .replay { grid-template-columns: minmax(0, 1fr); } }
+.stage { position: relative; background: var(--stage); border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+  aspect-ratio: 16 / 10; max-width: 100%; }
+.stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.hud { position: absolute; left: 10px; top: 10px; display: grid; gap: 1px; font: 12px var(--mono); pointer-events: none;
+  background: color-mix(in srgb, var(--panel) 85%, transparent); padding: 7px 10px; border-radius: 6px; }
+.hud .ph { font: 600 12px var(--ui); letter-spacing: .06em; text-transform: uppercase; }
+.badge { position: absolute; right: 10px; top: 10px; font: 600 11px var(--ui); letter-spacing: .05em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 99px; background: var(--panel); border: 1px solid var(--line); pointer-events: none; }
+.views { position: absolute; left: 10px; bottom: 10px; display: flex; flex-wrap: wrap; gap: 4px; }
+.hint { position: absolute; right: 10px; bottom: 12px; font: 11px var(--mono); color: var(--muted); pointer-events: none; }
+@media (max-width: 560px) { .hint { display: none; } }
+button.b { font: 500 12px var(--ui); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 6px 10px; cursor: pointer; }
+button.b[aria-pressed="true"] { border-color: var(--fg); background: var(--soft); }
+.controls { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-top: 10px; }
+@media (max-width: 560px) { .controls { grid-template-columns: auto minmax(0, 1fr); } .controls .speed, .controls .time { grid-column: span 1; } }
+.time { font: 12px var(--mono); color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.scrub { position: relative; height: 34px; min-width: 0; }
+.bands { position: absolute; inset: 0 0 auto; height: 14px; display: flex; border-radius: 3px; overflow: hidden; }
+.bands div { font: 9px var(--mono); color: var(--muted); display: flex; align-items: center; justify-content: center;
+  border-right: 1px solid var(--bg); overflow: hidden; white-space: nowrap; background: var(--soft); }
+.bands div.hold { background: color-mix(in srgb, var(--stick) 22%, var(--soft)); color: var(--fg); }
+.marks { position: absolute; left: 0; right: 0; top: 15px; height: 4px; }
+.marks span { position: absolute; top: 0; width: 2px; height: 4px; }
+#t { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; margin: 0; accent-color: var(--fg); }
+.speed { display: flex; gap: 4px; }
+.side { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; }
+.side > .panel { flex: none; }
+.side > .panel.eps { flex: 1 1 auto; min-height: 140px; display: flex !important; flex-direction: column; }
+.clips { position: relative; display: grid; gap: 6px; align-content: start; overflow-y: auto; min-height: 0; flex: 1 1 auto;
+  overscroll-behavior: contain; scrollbar-width: thin; padding-right: 4px; margin-right: -4px; }
+@media (max-width: 900px) { .clips { max-height: 360px; } }
+.clip { text-align: left; display: grid; gap: 2px; padding: 8px 10px; }
+.clip small { color: var(--muted); font-size: 12px; }
+.stats { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 13px; }
+.stats dt { color: var(--muted); } .stats dd { margin: 0; text-align: right; font: 12px var(--mono); font-variant-numeric: tabular-nums; }
+
+/* ---- pose overview (top of the page) */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.now { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 12px 16px; border-radius: 8px;
+  background: var(--panel); border: 1px solid var(--line); font-size: 13px; }
+.now .live { display: inline-flex; align-items: center; gap: 8px; font: 600 11px var(--ui); letter-spacing: .07em; text-transform: uppercase; }
+.now .live::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--good));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c, var(--good)) 22%, transparent); }
+.now b { font: 600 14px var(--head); }
+.now .kv { font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.now .kv strong { color: var(--fg); font-weight: 500; }
+.now .when { margin-left: auto; font: 12px var(--mono); color: var(--muted); }
+
+.pose-toggle { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 8px; }
+.pose-btn { display: grid; gap: 2px; text-align: left; padding: 12px 16px; border-radius: 8px; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--line); color: var(--fg); font: 13px var(--ui); }
+.pose-btn small { font: 600 11px var(--ui); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.pose-btn b { font: 600 16px var(--head); }
+.pose-btn span { color: var(--muted); font: 12px var(--mono); }
+.pose-btn[aria-selected="true"] { border-color: var(--fg); box-shadow: inset 0 -3px 0 var(--fg); }
+.pose-btn:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+
+.pose { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 860px) { .pose { grid-template-columns: minmax(0, 1fr); } }
+.pose figure { margin: 0; display: grid; gap: 6px; }
+.pose img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: var(--stage); aspect-ratio: 1120 / 420; object-fit: cover; }
+.pose figcaption { font-size: 12px; color: var(--muted); }
+.pose .about { display: grid; gap: 14px; align-content: start; }
+.best { display: grid; gap: 10px; }
+.best-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 420px) { .best-row { grid-template-columns: minmax(0, 1fr); } }
+.best-stat { display: grid; gap: 2px; padding: 12px; border-radius: 8px; background: var(--soft); align-content: start; }
+.best-stat .k { font: 600 11px var(--ui); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.best-stat .v { font: 600 26px var(--head); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.best-stat .d { font: 11.5px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.best .meta { font: 12px var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+
+.flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+@media (max-width: 980px) { .flow { grid-template-columns: minmax(0, 1fr); gap: 22px; } }
+.flow > li { position: relative; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.flow > li + li::before { content: "→"; position: absolute; left: -22px; top: 10px; font: 600 18px var(--head); color: var(--muted); }
+@media (max-width: 980px) { .flow > li + li::before { content: "↓"; left: 0; top: -22px; } }
+.st-head { display: grid; gap: 2px; }
+.st-head .n { font: 600 11px var(--ui); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.st-head h3 { font: 600 17px var(--head); letter-spacing: -0.01em; text-transform: none; color: var(--fg); }
+.st-head p { font-size: 13px; color: var(--muted); }
+.st-best { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; align-items: baseline; }
+.st-best .v { font: 600 30px var(--head); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; grid-row: span 2; }
+.st-best .d { font: 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.spark svg { display: block; }
+.runs { display: grid; gap: 0; }
+.run { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13px; }
+.run .id { font: 500 12.5px var(--mono); overflow-wrap: anywhere; }
+.run .id.is-best::after { content: "best"; margin-left: 6px; font: 600 10px var(--ui); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--fg); background: var(--soft); border-radius: 99px; padding: 1px 7px; }
+.run .num { font: 12px var(--mono); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.run .why { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
+.watch { justify-self: start; }
+table.settings td:first-child { color: var(--muted); }
+table.settings td { white-space: normal; min-width: 120px; }
+table.settings td.v { font: 12.5px var(--mono); font-variant-numeric: tabular-nums; }
+table.settings th small { display: block; font: 11px var(--mono); text-transform: none; letter-spacing: 0; color: var(--muted); }
+
+.explore { display: grid; gap: 4px; padding-top: 18px; border-top: 1px solid var(--line); }
+.explore h2 { font-size: 22px; }
+details.more { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+details.more > summary { cursor: pointer; padding: 12px 16px; font: 600 15px var(--head); list-style: none; display: flex; align-items: center; gap: 10px; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::before { content: "+"; font: 600 16px var(--mono); color: var(--muted); width: 12px; }
+details.more[open] > summary::before { content: "–"; }
+details.more > section { padding: 0 16px 16px; }
+details.more > section > .sec-head h2 { display: none; }
+
+.notes { display: grid; gap: 10px; }
+.notes p b { font-weight: 600; }
+#tip { position: fixed; z-index: 20; pointer-events: none; background: var(--panel); color: var(--fg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 9px; font: 12px/1.45 var(--ui); box-shadow: 0 4px 16px rgb(0 0 0 / .12); max-width: 260px; }
+#tip b { font-weight: 600; }
+.loading { color: var(--muted); font: 12px var(--mono); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; transition: none !important; } }
+</style>
+
+<main>
+  <header class="top">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 34 34" aria-hidden="true">
+        <rect x="1" y="1" width="32" height="32" rx="7" fill="var(--soft)" stroke="var(--line)"/>
+        <line x1="8" y1="27" x2="27" y2="7" stroke="var(--stick)" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="7" y1="22" x2="28" y2="12" stroke="var(--stick)" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <h1>Chopstix Results</h1>
+    </div>
+    <div class="sub" id="sub"><span>Shadow Hand · MuJoCo · deterministic rollouts on fixed seeds</span></div>
+  </header>
+
+
+
+
+
+  <section aria-labelledby="h-now" class="now-wrap">
+    <h2 id="h-now" class="sr">Training now</h2>
+    <div class="now" id="now"><span class="loading">Loading results…</span></div>
+  </section>
+
+  <section aria-labelledby="h-poses">
+    <div class="sec-head">
+      <h2 id="h-poses">Hand poses</h2>
+      <p>Pick a pose. Everything on the page follows it, down to the charts and the 3D replays.</p>
+    </div>
+    <div class="pose-toggle" role="tablist" aria-label="Hand pose" id="pose-toggle"></div>
+    <div class="pose" id="pose"></div>
+  </section>
+
+  <section aria-labelledby="h-flow">
+    <div class="sec-head">
+      <h2 id="h-flow">From A to Z</h2>
+      <p>Each stage starts from the best policy of the one before it, and only hands over once it reaches its gate.</p>
+    </div>
+    <ol class="flow" id="flow"></ol>
+  </section>
+
+  <section aria-labelledby="h-settings">
+    <div class="sec-head">
+      <h2 id="h-settings">Training settings of the best set</h2>
+      <p>PPO settings and test rules of the run that scored best in each stage.</p>
+    </div>
+    <div class="panel scroll"><table class="settings" id="settings"></table></div>
+  </section>
+
+  <div class="explore">
+    <h2>Explore the data</h2>
+    <p class="muted">Test results, episode by episode, for the pose picked above.</p>
+  </div>
+
+  <section aria-labelledby="h-setup">
+    <div class="sec-head">
+      <h2 id="h-setup">Test setup</h2>
+      <p>The charts below use one setup at a time. Numbers are only comparable within a setup.</p>
+    </div>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <p class="setup-desc" id="setup-desc"></p>
+  </section>
+
+  <section aria-labelledby="h-far">
+    <div class="sec-head">
+      <h2 id="h-far">How far each episode gets</h2>
+      <p>Each step needs the one before it. Whiskers are 95% Wilson intervals.</p>
+    </div>
+    <div class="panel"><div class="ms" id="milestones"></div><div class="legend" id="ms-legend" style="margin-top:12px"></div></div>
+  </section>
+
+  <section aria-labelledby="h-end">
+    <div class="sec-head">
+      <h2 id="h-end">How each episode ends</h2>
+      <p>Every episode lands in exactly one bucket. The squares are the individual episodes, by seed; hover one for its numbers.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:16px"><div id="outcomes" style="display:grid;gap:14px"></div>
+      <div class="outcomes-legend" id="out-legend"></div></div>
+  </section>
+
+  <section aria-labelledby="h-rate">
+    <div class="sec-head">
+      <h2 id="h-rate">Success rate with uncertainty</h2>
+      <p>With 32 episodes, a gap smaller than the overlapping whiskers is not a real difference.</p>
+    </div>
+    <div class="panel"><div id="forest"></div></div>
+  </section>
+
+  <section aria-labelledby="h-over">
+    <div class="sec-head">
+      <h2 id="h-over">Over the course of an episode</h2>
+      <p id="over-cap">Averages over all test episodes at each control step (20 per second). Hover a chart to read values.</p>
+    </div>
+    <div class="grid2" id="series"></div>
+    <div class="legend" id="series-legend"></div>
+  </section>
+
+  <section aria-labelledby="h-train">
+    <div class="sec-head">
+      <h2 id="h-train">Training progress</h2>
+      <p>Evaluation success while training (deterministic policy on fixed seeds), for policies that list their run.</p>
+    </div>
+    <div id="training"></div>
+  </section>
+
+  <section aria-labelledby="h-grip">
+    <div class="sec-head">
+      <h2 id="h-grip">Grip check</h2>
+      <p>The scripted grip alone, 20 runs of 10 s each with gravity, random 0.03 N pushes and 0.02 rad joint noise. A run holds if both sticks stay within 1 cm and 10° and three fingertips still touch.</p>
+    </div>
+    <div class="panel scroll"><table id="grip"></table></div>
+  </section>
+
+  <section aria-labelledby="h-replay">
+    <div class="sec-head">
+      <h2 id="h-replay">Watch the attempts in 3D</h2>
+      <p>Recorded episodes, every hand link, stick and cube pose at each control step, drawn with the real Shadow Hand meshes.</p>
+    </div>
+    <div class="replay">
+      <div style="min-width:0">
+        <div class="stage" id="stage">
+          <div class="hud" id="hud"></div>
+          <div class="badge" id="badge" hidden></div>
+          <div class="views" role="group" aria-label="Camera">
+            <button class="b" data-v="side">Side</button>
+            <button class="b" data-v="close">Close-up</button>
+            <button class="b" data-v="top">Top</button>
+            <button class="b" id="v-follow" data-v="follow" aria-pressed="false">Follow</button>
+          </div>
+          <div class="hint">drag to turn · scroll or pinch to zoom · right-drag to pan</div>
+        </div>
+        <div class="controls">
+          <button class="b" id="play" style="width:72px">Pause</button>
+          <span class="time" id="clock">0.00 s</span>
+          <div class="scrub"><div class="bands" id="bands"></div><div class="marks" id="marks"></div>
+            <input id="t" type="range" min="0" max="200" step="0.01" value="0" aria-label="Time"></div>
+          <div class="speed" role="group" aria-label="Playback speed">
+            <button class="b" data-s="0.25">¼×</button><button class="b" data-s="0.5" aria-pressed="true">½×</button><button class="b" data-s="1">1×</button>
+          </div>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="panel eps" style="display:grid;gap:8px"><h3>Episode</h3><div class="clips" id="clips"></div></div>
+        <div class="panel" style="display:grid;gap:8px"><h3>At this moment</h3><dl class="stats" id="stats"></dl></div>
+      </aside>
+    </div>
+  </section>
+
+  <details class="more"><summary><span>Snapshot history</span></summary>
+  <section aria-labelledby="h-history" class="folded">
+    <div class="sec-head">
+      <h2 id="h-history">How it changed, check by check</h2>
+      <p>Every report adds a snapshot: the same test episodes, rerun on whatever policies exist at that point.</p>
+    </div>
+    <div class="grid2">
+      <div class="panel"><div class="chart-title">Success rate per snapshot</div><div class="chart-cap" id="hist-cap"></div>
+        <div id="hist-chart"></div><div class="legend" id="hist-legend" style="margin-top:8px"></div></div>
+      <div class="panel history"><h3>Log</h3><div class="timeline" id="timeline"></div></div>
+    </div>
+  </section>
+  </details>
+
+  <details class="more"><summary><span>All policies of this pose</span></summary>
+  <section aria-labelledby="h-policies" class="folded">
+    <div class="sec-head">
+      <h2 id="h-policies">Policies on the bench</h2>
+      <p>Each card is one policy. Trained policies start from the MuJoCo grip and learn finger corrections on top of it.</p>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+  </details>
+
+  <details class="more"><summary><span>Grip lab (pose 1 grips)</span></summary>
+  <section aria-labelledby="h-griplab" class="folded">
+    <div class="sec-head">
+      <h2 id="h-griplab">Grip lab</h2>
+      <p>The grip alone, no policy: palm held still, finger targets fixed. First gravity at nine hand orientations, then
+        disturbances stepped up until the grip lets go. A run holds when both sticks stay within 1 cm and tilt less than
+        10° in the palm, with three fingertips still on them. Spin about a stick's own axis is ignored: the stick is round.</p>
+    </div>
+    <div class="cards" id="gl-cards"></div>
+    <div class="grid2" id="gl-ladders"></div>
+    <div class="legend" id="gl-legend"></div>
+    <div class="panel"><div class="chart-title">Gravity only, 10 s at each hand orientation</div>
+      <div class="chart-cap">Larger of the two sticks' movement and axis tilt after 10 s. Friction use is the highest tangential ÷ (friction × normal) force at any finger contact: 1.00 means that contact is at the edge of slipping and the others are carrying the load.</div>
+      <div class="scroll"><table id="gl-gravity"></table></div></div>
+  </section>
+  </details>
+
+  <details class="more"><summary><span>Reading the numbers</span></summary>
+  <section aria-labelledby="h-notes" class="folded">
+    <div class="sec-head"><h2 id="h-notes">Reading the numbers</h2></div>
+    <div class="panel notes">
+      <p><b>Same episodes every time.</b> Each setup reruns the same seeds (start-joint noise, cube position, place target) with the policy's mean action, so a change between snapshots comes from the policy or the code, not from luck in the draw.</p>
+      <p><b>Hold success</b> means both sticks end within 1 cm and 10° of where the grip puts them (palm frame). An episode ends early when a stick moves 3 cm or turns 30°.</p>
+      <p><b>Pick success</b> needs all of: the cube pinched to 40 mm, carried to B, lowered, released within 2 cm of B, and both sticks still in the hand. "Ended early" means a stick slipped 3 cm in the hand or the cube was knocked 12 cm from the tips.</p>
+      <p><b>Small samples.</b> 32 episodes give intervals about ±15 points around the middle of the scale. Trust a change when the whiskers stop overlapping, or rerun with more episodes.</p>
+      <p><b>Training evals</b> use their own fixed seeds and the training settings, so they can differ from the numbers here.</p>
+    </div>
+  </section>
+  </details>
+</main>
+<div id="tip" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const pct = p => `${Math.round(100 * p)}%`;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const SERIES = ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6", "--s7", "--s8"];
+const OUTCOME_COLOR = { success: "--good", shifted: "--warn", not_placed: "--warn", dropped: "--serious", never: "--neutral",
+  knocked: "--critical", slipped: "--critical" };
+const PHASES = ["settle", "descend", "close", "lift", "carry", "lower", "release", "retreat"];
+const HOLD_PHASES = new Set(["lift", "carry", "lower"]);
+let R, H, SETUP;
+
+// ---------- tooltip
+const tip = $("tip");
+function showTip(html, x, y) {
+  tip.innerHTML = html; tip.hidden = false;
+  const r = tip.getBoundingClientRect();
+  tip.style.left = Math.min(innerWidth - r.width - 8, x + 14) + "px";
+  tip.style.top = Math.max(8, y - r.height - 10) + "px";
+}
+function hideTip() { tip.hidden = true; }
+document.addEventListener("pointermove", e => {
+  const t = e.target.closest?.("[data-tip]");
+  if (t) showTip(t.dataset.tip, e.clientX, e.clientY); else if (!e.target.closest?.(".hoverchart")) hideTip();
+});
+
+function colorOf(entryId) { const i = R.entries.findIndex(e => e.id === entryId); return `var(${SERIES[i % SERIES.length]})`; }
+function entriesIn(setup) { return R.entries.filter(e => R.summaries[e.id]?.[setup]); }
+
+// ---------- header, latest, history
+function fmtDate(s) { const d = new Date(s.replace(/([+-]\d\d)(\d\d)$/, "$1:$2")); return isNaN(d) ? s : d.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }); }
+function renderHeader() {
+  $("sub").innerHTML = `<span>Shadow Hand · MuJoCo · deterministic rollouts on fixed seeds</span>
+    <span>updated ${esc(fmtDate(R.generated))}</span><span>commit ${esc(R.commit || "–")}</span><span>${H.length} snapshot${H.length === 1 ? "" : "s"}</span>`;
+}
+function bestEntry(setup, snap) {
+  let best = null;
+  for (const [eid, by] of Object.entries(snap.results)) {
+    const s = by[setup]; if (!s) continue;
+    if (!best || s.success.p > best.s.success.p) best = { eid, s };
+  }
+  return best;
+}
+function renderLatest() {
+  const last = H[H.length - 1], prev = H[H.length - 2];
+  $("latest-note").innerHTML = last ? `<span class="when">Snapshot ${H.length} · ${esc(fmtDate(last.time))} · commit ${esc(last.commit || "–")}</span>
+    <blockquote>${esc(last.note || "No note.")}</blockquote>` : `<span class="muted">No snapshot yet.</span>`;
+  const tiles = [];
+  for (const [sid, setup] of Object.entries(R.setups)) {
+    const b = last && bestEntry(sid, last); if (!b) continue;
+    const label = R.entries.find(e => e.id === b.eid)?.label || b.eid;
+    let delta = "";
+    const pb = prev && bestEntry(sid, prev);
+    if (pb) { const d = Math.round(100 * (b.s.success.p - pb.s.success.p)); delta = `<span class="delta ${d > 0 ? "up" : d < 0 ? "down" : ""}">${d > 0 ? "+" : ""}${d} pts vs last</span>`; }
+    tiles.push(`<div class="tile"><span class="k">${esc(setup.label)}</span><span class="v">${pct(b.s.success.p)}</span>
+      <span class="d">${b.s.success.k}/${b.s.success.n} · 95% ${pct(b.s.success.ci[0])}–${pct(b.s.success.ci[1])}</span>
+      <span class="d">best: ${esc(label)} ${delta}</span></div>`);
+  }
+  const gl = (R.grip_labs || []).at(-1);
+  if (gl) tiles.push(`<div class="tile"><span class="k">Grip lab · ${esc(gl.grip)}</span><span class="v">${gl.score.gravity_poses_held}/${gl.score.gravity_poses}</span>
+    <span class="d">gravity poses held · pushes to ${gl.score.max_push_N ?? 0} N</span><span class="d">finger jitter to ${gl.score.max_jitter_rad ?? 0} rad</span></div>`);
+  $("tiles").innerHTML = tiles.join("");
+}
+
+function svgLine(points) { return points.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(""); }
+function yAxis(W, top, h, ticks, fmt, left = 40) {
+  return ticks.map(v => { const y = top + h * (1 - v); return `<g class="grid"><line x1="${left}" x2="${W - 8}" y1="${y}" y2="${y}"/></g>
+    <text x="${left - 6}" y="${y + 3.5}" text-anchor="end">${fmt(v)}</text>`; }).join("");
+}
+
+function renderHistory() {
+  const W = 560, Hh = 210, L = 44, T = 12, B = 28, h = Hh - T - B, n = Math.max(H.length, 1);
+  const xs = i => n === 1 ? (L + W - 8) / 2 : L + 16 + (W - L - 40) * i / (n - 1);
+  const setups = Object.keys(R.setups);
+  const dashes = ["", "5 4", "1.5 3"];
+  let marks = "", legend = [];
+  const lines = [];
+  for (const e of R.entries) for (const [si, sid] of setups.entries()) {
+    const pts = H.map((s, i) => s.results[e.id]?.[sid] ? [i, s.results[e.id][sid].success] : null).filter(Boolean);
+    if (!pts.length) continue;
+    lines.push({ e, sid, si, pts });
+  }
+  for (const { e, sid, si, pts } of lines) {
+    const col = colorOf(e.id), xy = pts.map(([i, s]) => [xs(i), T + h * (1 - s.p)]);
+    if (xy.length > 1) marks += `<path d="${svgLine(xy)}" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="${dashes[si % 3]}"/>`;
+    pts.forEach(([i, s], k) => {
+      const [x, y] = xy[k];
+      marks += `<line x1="${x}" x2="${x}" y1="${T + h * (1 - s.ci[1])}" y2="${T + h * (1 - s.ci[0])}" stroke="${col}" stroke-width="1.5" opacity=".5"/>
+        <circle cx="${x}" cy="${y}" r="${si ? 4.5 : 5}" fill="${si ? "var(--panel)" : col}" stroke="${col}" stroke-width="2"
+        data-tip="<b>${esc(e.label)}</b> · ${esc(R.setups[sid].label)}<br>snapshot ${i + 1}: ${s.k}/${s.n} (${pct(s.p)})<br>95% ${pct(s.ci[0])}–${pct(s.ci[1])}"/>`;
+    });
+    legend.push(`<span><i style="--c:${col};${si ? "background:transparent;border:2px solid " + col : ""}"></i>${esc(e.label)} · ${esc(R.setups[sid].label)}</span>`);
+  }
+  const xt = H.map((s, i) => `<text x="${xs(i)}" y="${Hh - 8}" text-anchor="middle">#${i + 1}</text>`).join("");
+  $("hist-chart").innerHTML = `<svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="Success rate per snapshot">
+    ${yAxis(W, T, h, [0, .25, .5, .75, 1], pct, L)}${xt}${marks}</svg>`;
+  $("hist-legend").innerHTML = legend.join("");
+  $("hist-cap").textContent = H.length < 2 ? "One snapshot so far; a line appears from the second report on. Filled dots: first setup, hollow: second." : "Filled dots: first setup, hollow: second. Whiskers: 95% intervals.";
+  $("timeline").innerHTML = H.slice().reverse().map((s, j) => {
+    const chips = [];
+    for (const [eid, by] of Object.entries(s.results)) for (const [sid, v] of Object.entries(by))
+      chips.push(`<span class="chip">${esc(R.entries.find(e => e.id === eid)?.label || eid)} · ${esc(sid)} ${pct(v.success.p)}</span>`);
+    return `<div class="tl-item"><div class="tl-dot"></div><div class="tl-body"><span class="when">#${H.length - j} · ${esc(fmtDate(s.time))} · ${esc(s.commit || "–")}</span>
+      <span>${esc(s.note || "No note.")}</span><div class="chips">${chips.join("")}</div></div></div>`;
+  }).join("");
+}
+
+function renderCards() {
+  $("cards").innerHTML = R.entries.filter(e => !P || e.id === "scripted" || inPose(e.id)).map(e => {
+    const rows = Object.entries(R.summaries[e.id] || {}).map(([sid, s]) =>
+      `<dt>${esc(R.setups[sid].label)}</dt><dd>${s.success.k}/${s.success.n} · ${pct(s.success.p)}</dd>`).join("");
+    const c = R.curves[e.id];
+    const tr = c ? `<dt>Training</dt><dd>${c.finished ? "finished" : "running"}${c.total_steps ? " · " + (c.total_steps / 1e6).toFixed(0) + "M steps" : ""}</dd>` : "";
+    return `<div class="panel card"><div class="top"><span class="swatch" style="--c:${colorOf(e.id)}"></span><b>${esc(e.label)}</b>
+      <span class="tag">from ${esc(e.from)}</span></div><p class="muted" style="font-size:13px">${esc(e.desc)}</p><dl>${rows}${tr}</dl></div>`;
+  }).join("");
+}
+
+// ---------- per-setup charts
+function renderTabs() {
+  $("tabs").innerHTML = Object.entries(R.setups).filter(([sid]) => !P || curPose().setups.includes(sid)).map(([sid, s]) =>
+    `<button class="tab" role="tab" id="tab-${sid}" aria-selected="${sid === SETUP}" data-s="${sid}">${esc(s.label)}</button>`).join("");
+  $("setup-desc").textContent = R.setups[SETUP].desc;
+}
+$("tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if (!b) return; SETUP = b.dataset.s;
+  try { localStorage.setItem("chopstix-setup", SETUP); } catch {} renderSetup(); });
+
+function renderMilestones() {
+  const es = entriesIn(SETUP);
+  const first = R.summaries[es[0].id][SETUP].milestones;
+  $("milestones").innerHTML = first.map((m, mi) => `<div class="ms-row"><span>${esc(m.label)}</span><div class="bars">${es.map(e => {
+    const r = R.summaries[e.id][SETUP].milestones[mi];
+    return `<div class="barline" data-tip="<b>${esc(e.label)}</b><br>${esc(r.label)}: ${r.k}/${r.n} (${pct(r.p)})<br>95% ${pct(r.ci[0])}–${pct(r.ci[1])}">
+      <div class="track"><div class="fill" style="width:${100 * r.p}%;--c:${colorOf(e.id)}"></div>
+      <div class="ci" style="left:${100 * r.ci[0]}%;width:${100 * (r.ci[1] - r.ci[0])}%"></div></div>
+      <span class="num">${r.k}/${r.n} · ${pct(r.p)}</span></div>`; }).join("")}</div></div>`).join("");
+  $("ms-legend").innerHTML = es.length > 1 ? es.map(e => `<span><i style="--c:${colorOf(e.id)}"></i>${esc(e.label)}</span>`).join("") : "";
+}
+
+function renderOutcomes() {
+  const es = entriesIn(SETUP);
+  const keys = R.summaries[es[0].id][SETUP].outcomes;
+  $("outcomes").innerHTML = es.map(e => {
+    const s = R.summaries[e.id][SETUP];
+    const segs = s.outcomes.filter(o => o.k > 0).map(o => `<div style="flex:${o.k};--c:var(${OUTCOME_COLOR[o.key]})" data-tip="<b>${esc(o.label)}</b><br>${o.k}/${o.n} (${pct(o.p)})"></div>`).join("");
+    const unit = SETUP === "hold" || R.setups[SETUP].stage === "hold" ? "max drift" : "best pinched lift";
+    const strip = s.episodes.map(ep => { const o = s.outcomes.find(x => x.key === ep.outcome);
+      return `<span style="--c:var(${OUTCOME_COLOR[ep.outcome]})" data-tip="<b>seed ${ep.seed}</b> · ${esc(o?.label || ep.outcome)}<br>${(ep.length / 20).toFixed(1)} s · ${unit} ${ep.score} mm"></span>`; }).join("");
+    return `<div class="stack-row"><span style="font-size:13px;display:flex;gap:8px;align-items:center"><span class="swatch" style="--c:${colorOf(e.id)}"></span>${esc(e.label)}</span>
+      <div style="display:grid;gap:8px;min-width:0"><div class="stack">${segs}</div><div class="strip" aria-label="episodes by seed">${strip}</div></div></div>`;
+  }).join("");
+  $("out-legend").innerHTML = keys.map(o => {
+    const counts = es.map(e => R.summaries[e.id][SETUP].outcomes.find(x => x.key === o.key)?.k ?? 0);
+    return `<div><i style="--c:var(${OUTCOME_COLOR[o.key]})"></i><span>${esc(o.label)}</span><span class="n">${counts.join(" · ")} of ${o.n}</span></div>`;
+  }).join("");
+}
+
+function renderForest() {
+  const es = entriesIn(SETUP);
+  const W = 640, L = 170, rowH = 34, T = 8, Hh = T + rowH * es.length + 30, w = W - L - 20;
+  const x = p => L + w * p;
+  let g = [0, .25, .5, .75, 1].map(v => `<g class="grid"><line x1="${x(v)}" x2="${x(v)}" y1="${T}" y2="${Hh - 24}"/></g><text x="${x(v)}" y="${Hh - 8}" text-anchor="middle">${pct(v)}</text>`).join("");
+  es.forEach((e, i) => {
+    const s = R.summaries[e.id][SETUP].success, y = T + rowH * i + rowH / 2, col = colorOf(e.id);
+    g += `<text x="${L - 12}" y="${y + 4}" text-anchor="end" style="fill:var(--fg);font-family:var(--ui);font-size:12px">${esc(e.label)}</text>
+      <line x1="${x(s.ci[0])}" x2="${x(s.ci[1])}" y1="${y}" y2="${y}" stroke="${col}" stroke-width="2"/>
+      <line x1="${x(s.ci[0])}" x2="${x(s.ci[0])}" y1="${y - 5}" y2="${y + 5}" stroke="${col}" stroke-width="2"/>
+      <line x1="${x(s.ci[1])}" x2="${x(s.ci[1])}" y1="${y - 5}" y2="${y + 5}" stroke="${col}" stroke-width="2"/>
+      <circle cx="${x(s.p)}" cy="${y}" r="6" fill="${col}" stroke="var(--panel)" stroke-width="2"
+        data-tip="<b>${esc(e.label)}</b><br>${s.k}/${s.n} succeeded (${pct(s.p)})<br>95% ${pct(s.ci[0])}–${pct(s.ci[1])}"/>
+      <rect x="${L}" y="${y - rowH / 2}" width="${w}" height="${rowH}" fill="transparent" data-tip="<b>${esc(e.label)}</b><br>${s.k}/${s.n} succeeded (${pct(s.p)})<br>95% ${pct(s.ci[0])}–${pct(s.ci[1])}"/>`;
+  });
+  $("forest").innerHTML = `<div class="scroll"><svg viewBox="0 0 ${W} ${Hh}" width="100%" style="min-width:420px" role="img" aria-label="Success rates with 95% intervals">${g}</svg></div>`;
+}
+
+function seriesChart(id, title, cap, key, max, fmt, bands) {
+  const es = entriesIn(SETUP), W = 560, Hh = 190, L = 44, T = 10, B = 26, h = Hh - T - B;
+  const n = R.summaries[es[0].id][SETUP].series[key].length, dt = R.dt;
+  const x = i => L + (W - L - 10) * i / (n - 1), y = v => T + h * (1 - Math.min(1, v / max));
+  let g = "";
+  if (bands) { let s = 0; bands.forEach((len, i) => { if (HOLD_PHASES.has(PHASES[i])) g += `<rect x="${x(s)}" y="${T}" width="${x(s + len) - x(s)}" height="${h}" fill="var(--stick)" opacity=".1"/>`; s += len; }); }
+  const ticks = [0, .25, .5, .75, 1];
+  g += ticks.map(v => `<g class="grid"><line x1="${L}" x2="${W - 10}" y1="${y(v * max)}" y2="${y(v * max)}"/></g><text x="${L - 6}" y="${y(v * max) + 3.5}" text-anchor="end">${fmt(v * max)}</text>`).join("");
+  const secs = Math.floor((n - 1) * dt);
+  for (let s = 0; s <= secs; s += 2) g += `<text x="${x(s / dt)}" y="${Hh - 6}" text-anchor="middle">${s}s</text>`;
+  for (const e of es) {
+    const v = R.summaries[e.id][SETUP].series[key];
+    const pts = v.map((val, i) => val == null || Number.isNaN(val) ? null : [x(i), y(val)]).filter(Boolean);
+    g += `<path d="${svgLine(pts)}" fill="none" stroke="${colorOf(e.id)}" stroke-width="2" stroke-linejoin="round"/>`;
+  }
+  g += `<line class="xh" x1="0" x2="0" y1="${T}" y2="${T + h}" stroke="var(--fg)" stroke-width="1" opacity="0"/>`;
+  return `<div class="panel"><div class="chart-title">${title}</div><div class="chart-cap">${cap}</div>
+    <svg class="hoverchart" data-key="${key}" data-max="${max}" viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="${esc(title)}">${g}</svg></div>`;
+}
+function renderSeries() {
+  const stage = R.setups[SETUP].stage, es = entriesIn(SETUP);
+  const bands = stage === "pick" ? R.summaries[es[0].id][SETUP].phase_steps : null;
+  const html = stage === "pick" ? [
+    seriesChart("a", "Episodes still running", "Share not yet ended early (a stick slipped or the cube was knocked away).", "running", 1, pct, bands),
+    seriesChart("b", "Both sticks on the cube", "Share of all episodes with both sticks touching the cube. Shaded: lift, carry and lower, when it should be held.", "touch", 1, pct, bands),
+    seriesChart("c", "Cube height", "Mean height of the cube's bottom above the table, over episodes still running. The task lifts it 60 mm.", "height_mm", 70, v => `${Math.round(v)} mm`, bands),
+  ] : [
+    seriesChart("a", "Episodes still running", "Share where neither stick has slipped 3 cm or turned 30°.", "running", 1, pct, null),
+    seriesChart("b", "Within success tolerance", "Share with both sticks within 1 cm and 10° of the grip at that moment.", "within", 1, pct, null),
+    seriesChart("c", "How far the sticks have moved", "Mean of the larger stick displacement in the palm frame, over episodes still running.", "drift_mm", 10, v => `${v.toFixed(1)} mm`, null),
+  ];
+  $("series").innerHTML = html.join("");
+  $("series-legend").innerHTML = es.length > 1 ? es.map(e => `<span><i style="--c:${colorOf(e.id)}"></i>${esc(e.label)}</span>`).join("") : "";
+  document.querySelectorAll(".hoverchart").forEach(svg => {
+    const key = svg.dataset.key, xh = svg.querySelector(".xh");
+    const move = ev => {
+      const r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal, px = (ev.clientX - r.left) / r.width * vb.width;
+      const n = R.summaries[es[0].id][SETUP].series[key].length, i = Math.round((px - 44) / (vb.width - 54) * (n - 1));
+      if (i < 0 || i >= n) { xh.setAttribute("opacity", 0); hideTip(); return; }
+      const xx = 44 + (vb.width - 54) * i / (n - 1); xh.setAttribute("x1", xx); xh.setAttribute("x2", xx); xh.setAttribute("opacity", .35);
+      const fmt = key === "height_mm" || key === "drift_mm" ? v => `${(+v).toFixed(1)} mm` : pct;
+      const ph = stage === "pick" ? (() => { let s = 0; const ps = R.summaries[es[0].id][SETUP].phase_steps; for (let k = 0; k < ps.length; k++) { s += ps[k]; if (i < s) return " · " + PHASES[k]; } return ""; })() : "";
+      showTip(`<b>${(i * R.dt + R.dt).toFixed(2)} s${ph}</b><br>` + es.map(e => { const v = R.summaries[e.id][SETUP].series[key][i];
+        return `<span style="color:${colorOf(e.id)}">■</span> ${esc(e.label)}: ${v == null || Number.isNaN(v) ? "–" : fmt(v)}`; }).join("<br>"), ev.clientX, ev.clientY);
+    };
+    svg.addEventListener("pointermove", move);
+    svg.addEventListener("pointerleave", () => { xh.setAttribute("opacity", 0); hideTip(); });
+  });
+}
+
+let TRAIN_SEL = null, TRAIN_EPS = false;  // which runs the training chart shows (remembered per viewer), faint episode lines
+try { TRAIN_SEL = JSON.parse(localStorage.getItem("chopstix-train-sel")); TRAIN_EPS = localStorage.getItem("chopstix-train-eps") === "1"; } catch {}
+function renderTraining() {
+  const all = Object.entries(R.curves).filter(([id]) => !P || inPose(id));
+  if (!all.length) {
+    $("training").innerHTML = `<div class="empty"><b style="color:var(--fg)">No training runs yet.</b>
+      <span>Once a policy is trained, add it to <code>site/lineup.json</code> with its <code>actor</code> and <code>run</code>, then run <code>python -m chopstix.tools.report --note "…"</code>. Its evaluation curve appears here and it joins every chart above.</span></div>`;
+    return;
+  }
+  const entry = id => R.entries.find(z => z.id === id), when = id => entry(id)?.saved || "";
+  const order = all.map(([id]) => id).sort((a, b) => when(b).localeCompare(when(a)));  // newest first
+  if (!Array.isArray(TRAIN_SEL) || !TRAIN_SEL.some(id => order.includes(id))) TRAIN_SEL = order.slice(0, 1);
+  const runs = all.filter(([id]) => TRAIN_SEL.includes(id));
+  const chips = order.map(id => `<button class="chip" data-run="${id}" aria-pressed="${TRAIN_SEL.includes(id)}" style="--c:${colorOf(id)}"
+      title="${esc(entry(id)?.desc || "")}"><i></i>${esc(entry(id)?.label || id)}${when(id) ? ` <small style="color:var(--muted)">${fmtWhen(when(id))}</small>` : ""}</button>`).join("");
+  const bar = `<div class="run-toggles" role="group" aria-label="Runs to show">
+    <button class="chip" data-run="__all" aria-pressed="${TRAIN_SEL.length === order.length}">All</button>
+    <button class="chip" data-run="__new" aria-pressed="${TRAIN_SEL.length === 1 && TRAIN_SEL[0] === order[0]}">Newest only</button>
+    <span class="sep"></span>${chips}<span class="sep"></span>
+    <label><input type="checkbox" id="train-eps" ${TRAIN_EPS ? "checked" : ""}> training episodes (faint)</label></div>`;
+  if (!runs.length) { $("training").innerHTML = `<div class="panel">${bar}<p class="muted">Pick a run above.</p></div>`; return; }
+  const W = 560, Hh = 210, L = 44, T = 10, B = 28, h = Hh - T - B;
+  const maxStep = Math.max(...runs.map(([, c]) => Math.max(...(c["eval/success"] || c["episode/is_success"] || [[1, 0]]).map(p => p[0]))));
+  const x = s => L + (W - L - 10) * s / maxStep, y = v => T + h * (1 - v);
+  let g = yAxis(W, T, h, [0, .25, .5, .75, 1], pct, L);
+  const tick = v => v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : Math.round(v / 1e3) + "k";
+  for (let k = 0; k <= 4; k++) g += `<text x="${x(maxStep * k / 4)}" y="${Hh - 8}" text-anchor="middle">${tick(maxStep * k / 4)}</text>`;
+  const legend = [];
+  for (const [eid, c] of runs) {
+    const col = colorOf(eid), e = entry(eid);
+    const ev = c["eval/success"], tr = c["episode/is_success"];
+    if (tr && TRAIN_EPS) g += `<path d="${svgLine(tr.map(p => [x(p[0]), y(p[1])]))}" fill="none" stroke="${col}" stroke-width="1.5" opacity=".3"/>`;
+    if (ev) { g += `<path d="${svgLine(ev.map(p => [x(p[0]), y(p[1])]))}" fill="none" stroke="${col}" stroke-width="2"/>`;
+      g += ev.map(p => `<circle cx="${x(p[0])}" cy="${y(p[1])}" r="3.5" fill="${col}" stroke="var(--panel)" stroke-width="1" data-tip="<b>${esc(e?.label || eid)}</b><br>${(p[0] / 1e6).toFixed(2)}M steps: eval ${pct(p[1])}"/>`).join(""); }
+    const best = ev?.length ? Math.max(...ev.map(p => p[1])) : null;
+    legend.push(`<span><i style="--c:${col}"></i>${esc(e?.label || eid)}${best != null ? ` · best eval ${pct(best)}` : ""}</span>`);
+  }
+  $("training").innerHTML = `<div class="panel">${bar}<svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="Training curves">${g}</svg>
+    <div class="legend" style="margin-top:8px">${legend.join("")}</div>
+    <p class="muted" style="font-size:12px;margin:6px 0 0">Dots: evaluation success (fixed seeds, the policy's mean action)${TRAIN_EPS ? "; faint lines: training episodes" : ""}. Steps count from each run's own start.</p></div>`;
+}
+$("training").addEventListener("click", ev => {
+  const b = ev.target.closest(".chip"); if (!b) return;
+  const order = Object.keys(R.curves).filter(id => !P || inPose(id)).sort((a, c) => (R.entries.find(z => z.id === c)?.saved || "").localeCompare(R.entries.find(z => z.id === a)?.saved || ""));
+  const id = b.dataset.run;
+  if (id === "__all") TRAIN_SEL = order.slice();
+  else if (id === "__new") TRAIN_SEL = order.slice(0, 1);
+  else TRAIN_SEL = TRAIN_SEL.includes(id) ? TRAIN_SEL.filter(z => z !== id) : [...TRAIN_SEL, id];
+  try { localStorage.setItem("chopstix-train-sel", JSON.stringify(TRAIN_SEL)); } catch {}
+  renderTraining();
+});
+$("training").addEventListener("change", ev => {
+  if (ev.target.id !== "train-eps") return;
+  TRAIN_EPS = ev.target.checked;
+  try { localStorage.setItem("chopstix-train-eps", TRAIN_EPS ? "1" : "0"); } catch {}
+  renderTraining();
+});
+
+function renderGrip() {
+  const rows = R.grip_checks.slice().sort((a, b) => b.hold - a.hold);
+  document.querySelector('[aria-labelledby="h-grip"]').hidden = !rows.length;
+  if (!rows.length) return;
+  const nice = c => c === "(defaults)" ? "MuJoCo defaults (no no-slip pass)" : c.replace(/noslip_iterations=/g, "no-slip ").replace(/timestep=0.00(\d)/g, "$1 ms step")
+    .replace(/joint_kp=4 joint_kv=0.08/, "finger gains −20%").replace(/stick_mass=0.015/, "sticks 15 g").replace(/friction=/, "friction ");
+  const state = h => h >= .95 ? ["--good", "holds"] : h >= .8 ? ["--warn", "marginal"] : ["--critical", "fails"];
+  $("grip").innerHTML = `<thead><tr><th>Physics setting</th><th>Verdict</th><th style="text-align:right">Held</th><th style="text-align:right">95% interval</th><th style="text-align:right">Worst drift</th><th style="text-align:right">Worst turn</th></tr></thead><tbody>` +
+    rows.map(g => { const [c, v] = state(g.hold); const train = g.case === "noslip_iterations=10 timestep=0.005";
+      return `<tr><td>${esc(nice(g.case))}${train ? ' <span class="tag">training default</span>' : ""}</td><td><span class="pill" style="--c:var(${c})">${v}</span></td>
+      <td class="num">${Math.round(g.hold * g.runs)}/${g.runs}</td><td class="num">${pct(g.ci[0])}–${pct(g.ci[1])}</td><td class="num">${g.worst_mm} mm</td><td class="num">${g.worst_deg}°</td></tr>`; }).join("") + "</tbody>";
+}
+
+// ---------- grip lab
+const LADDERS = [
+  ["pushes", "Pushes on the sticks", "Random force on each stick, up to this much per axis, new every 0.1 s. Grip pose.", v => `${v} N`],
+  ["pushes_pick", "Pushes in the pick pose", "Same pushes with the hand turned as in the pick task (sticks side by side).", v => `${v} N`],
+  ["jitter", "Finger jitter", "Random noise on every finger target at each control step, like a learning policy's exploration.", v => `${v} rad`],
+  ["start", "Start-joint noise", "Random offset on every starting joint angle.", v => `${v} rad`],
+  ["path", "Palm along the pick path", "Descend, lift, carry, lower, played faster and faster (pick pose, light noise on).", v => `${v}× speed`],
+  ["shake", "Palm shaking", "The palm vibrates at 3 Hz in a random direction; level = peak acceleration (pick pose, light noise on).", v => `${v} m/s²`],
+  ["wobble", "Palm wobble", "The palm rocks about a random axis at 2 Hz, ± this angle (pick pose, light noise on).", v => `±${v}°`],
+  ["mass", "Heavier sticks", "Each stick's mass (normal: 10 g). Pick pose, light noise on.", v => `${Math.round(v * 1000)} g`],
+  ["friction", "Slippery fingers", "Friction between hand and sticks (normal: 0.8). Pick pose, light noise on.", v => `${v}`],
+  ["timestep", "Physics step size", "The grip must not depend on the simulation step (training: 5 ms). Pick pose, light noise on.", v => `${v * 1000} ms`],
+];
+// The training-default grip (marked "default" in lineup.json, else the last) is blue; the first ("before") grey; others
+// take the next categorical slots in order.
+function glColor(i) {
+  const G = R.grip_labs, d = Math.max(0, G.findIndex(g => g.default)), def = G.some(g => g.default) ? d : G.length - 1;
+  if (i === def) return "var(--s1)";
+  if (i === 0) return "var(--neutral)";
+  const others = G.map((_, k) => k).filter(k => k !== def && k !== 0);
+  return `var(${["--s2", "--s3", "--s4"][others.indexOf(i) % 3]})`;
+}
+function renderGripLab() {
+  const G = R.grip_labs || [];
+  if (!G.length) { document.querySelector('[aria-labelledby="h-griplab"]').hidden = true; return; }
+  const phys = s => [s.actuator_timeconst ? `${s.actuator_timeconst} s finger lag` : "no finger lag", `no-slip ${s.noslip_iterations}`, `${1000 * s.timestep} ms steps`].join(" · ");
+  const lv = (v, u) => v == null ? "none" : `${v} ${u}`;
+  $("gl-cards").innerHTML = G.map((g, i) => `<div class="panel card"><div class="top"><span class="swatch" style="--c:${glColor(i)}"></span><b>${esc(g.label)}</b></div>
+    <p class="muted" style="font-size:13px">${esc(g.desc)}</p><dl>
+    <dt>Gravity poses held</dt><dd>${g.score.gravity_poses_held}/${g.score.gravity_poses}</dd>
+    <dt>Pushes held (grip / pick pose)</dt><dd>${lv(g.score.max_push_N, "N")} / ${lv(g.score.max_push_pick_N, "N")}</dd>
+    <dt>Finger jitter held</dt><dd>${lv(g.score.max_jitter_rad, "rad")}</dd>
+    <dt>Start noise held</dt><dd>${lv(g.score.max_start_rad, "rad")}</dd>
+    <dt>Strongest finger force</dt><dd>${g.score.max_finger_force_N} N</dd>
+    <dt>Physics</dt><dd style="white-space:normal">${esc(phys(g.sim))}</dd></dl>
+    <span class="muted" style="font-size:12px">"Held" = the largest level every rung up to which holds in ≥ 90% of ${g.seeds} runs × ${g.duration} s.</span></div>`).join("");
+  $("gl-ladders").innerHTML = LADDERS.filter(([key]) => G.some(g => g.ladders[key])).map(([key, title, cap, fmt]) => {
+    const ref = G.filter(g => g.ladders[key]).at(-1).ladders[key];
+    const levels = ref.map(r => r.level), W = 520, Hh = 190, L = 44, T = 10, B = 28, h = Hh - T - B;
+    const x = i => L + 18 + (W - L - 36) * i / Math.max(1, levels.length - 1), y = p => T + h * (1 - p);
+    let g = yAxis(W, T, h, [0, .25, .5, .75, 1], pct, L);
+    g += levels.map((v, i) => `<text x="${x(i)}" y="${Hh - 8}" text-anchor="middle">${esc(fmt(v))}</text>`).join("");
+    G.forEach((gl, gi) => {
+      if (!gl.ladders[key]) return;
+      const rows = gl.ladders[key].filter(r => levels.includes(r.level)), col = glColor(gi);
+      const xi = r => x(levels.indexOf(r.level));
+      g += `<path d="${svgLine(rows.map(r => [xi(r), y(r.p)]))}" fill="none" stroke="${col}" stroke-width="2"/>`;
+      g += rows.map(r => `<line x1="${xi(r)}" x2="${xi(r)}" y1="${y(r.ci[1])}" y2="${y(r.ci[0])}" stroke="${col}" stroke-width="1.5" opacity=".45"/>
+        <circle cx="${xi(r)}" cy="${y(r.p)}" r="5" fill="${col}" stroke="var(--panel)" stroke-width="2"
+        data-tip="<b>${esc(gl.label)}</b><br>${fmt(r.level)}: held ${r.k}/${r.n} (${pct(r.p)})<br>95% ${pct(r.ci[0])}–${pct(r.ci[1])}${r.median_fail_s != null ? `<br>failures at ~${r.median_fail_s} s (median)` : ""}"/>`).join("");
+    });
+    return `<div class="panel"><div class="chart-title">${title}</div><div class="chart-cap">${cap} Share of runs that held.</div>
+      <svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="${esc(title)}">${g}</svg></div>`;
+  }).join("");
+  $("gl-legend").innerHTML = G.map((g, i) => `<span><i style="--c:${glColor(i)}"></i>${esc(g.label)}</span>`).join("");
+  const poses = G[0].gravity.map(p => p.pose);
+  $("gl-gravity").innerHTML = `<thead><tr><th>Hand orientation</th>${G.map(g => `<th colspan="4">${esc(g.label)}</th>`).join("")}</tr>
+    <tr><th></th>${G.map(() => `<th>Verdict</th><th style="text-align:right">Moved</th><th style="text-align:right">Tilt</th><th style="text-align:right">Friction use</th>`).join("")}</tr></thead><tbody>` +
+    poses.map(pose => `<tr><td>${esc(pose)}</td>${G.map(g => { const r = g.gravity.find(p => p.pose === pose);
+      const mv = Math.max(r.drift_mm.upper, r.drift_mm.lower), tl = Math.max(r.turn_deg.upper, r.turn_deg.lower), fu = Math.max(...Object.values(r.friction_use));
+      return `<td><span class="pill" style="--c:var(${r.holds ? "--good" : "--critical"})">${r.holds ? "holds" : "drops"}</span></td>
+        <td class="num">${mv.toFixed(1)} mm</td><td class="num">${tl.toFixed(1)}°</td><td class="num">${fu.toFixed(2)}</td>`; }).join("")}</tr>`).join("") + "</tbody>";
+}
+
+function renderSetup() { renderTabs(); renderMilestones(); renderOutcomes(); renderForest(); renderSeries(); renderClipList(); }
+
+// ---------- 3-D replay
+let scene3, camera, renderer3, controls, key, world, SC, meshGeoms = {}, CLIP, bodies = [], sticks = [], cube, target, trail, arrows = [];
+let T = 0, playing = true, speed = 0.5, follow = false;
+const clipCache = {};
+function initStage() {
+  const stage = $("stage");
+  if (typeof THREE === "undefined") { stage.insertAdjacentHTML("beforeend", `<p class="loading" style="padding:40px">3-D viewer could not load (three.js blocked).</p>`); return false; }
+  renderer3 = new THREE.WebGLRenderer({ antialias: true });
+  renderer3.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer3.shadowMap.enabled = true; renderer3.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer3.outputEncoding = THREE.sRGBEncoding; renderer3.toneMapping = THREE.ACESFilmicToneMapping;
+  stage.prepend(renderer3.domElement);
+  scene3 = new THREE.Scene();
+  const bg = () => new THREE.Color(css("--stage")).convertSRGBToLinear();
+  scene3.background = bg(); scene3.fog = new THREE.Fog(scene3.background, 1.2, 2.6);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { scene3.background = bg(); scene3.fog.color = scene3.background; });
+  new MutationObserver(() => { scene3.background = bg(); scene3.fog.color = scene3.background; }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  camera = new THREE.PerspectiveCamera(35, 1.6, 0.005, 10); camera.up.set(0, 0, 1);
+  controls = new THREE.OrbitControls(camera, renderer3.domElement); controls.enableDamping = true; controls.dampingFactor = 0.12;
+  scene3.add(new THREE.HemisphereLight(0xf2f4ff, 0x4a4036, 0.7));
+  key = new THREE.DirectionalLight(0xffffff, 1.5); key.position.set(0.35, -0.45, 0.9); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -0.35, right: 0.35, top: 0.35, bottom: -0.35, near: 0.1, far: 2.5 });
+  key.shadow.bias = -0.0004; scene3.add(key, key.target);
+  const rim = new THREE.DirectionalLight(0xbfd4ff, 0.45); rim.position.set(-0.6, 0.5, 0.5); scene3.add(rim);
+  const table = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.MeshStandardMaterial({ color: new THREE.Color(0xd9dcd6).convertSRGBToLinear(), roughness: 0.92 }));
+  table.receiveShadow = true; scene3.add(table);
+  const grid = new THREE.GridHelper(1.6, 32, 0x9aa1a8, 0xb9bec4); grid.rotation.x = Math.PI / 2; grid.position.z = 0.0002;
+  grid.material.transparent = true; grid.material.opacity = 0.4; scene3.add(grid);
+  world = new THREE.Group(); scene3.add(world);
+  new ResizeObserver(resize).observe(stage);
+  return true;
+}
+const MAT = {};
+function mats() {
+  const m = (hex, r, me) => { const x = new THREE.MeshStandardMaterial({ color: new THREE.Color(hex).convertSRGBToLinear(), roughness: r, metalness: me }); return x; };
+  Object.assign(MAT, { plastic: m("#2a2a2a", 0.5, 0.05), metal: m("#e6e6e6", 0.35, 0.55), arm: m("#383838", 0.5, 0.0),
+    stick: m("#b5652b", 0.38, 0), cube: m("#d23a2c", 0.55, 0) });
+}
+function geomFrom(p) {
+  const v = new Float32Array(Uint8Array.from(atob(p.v), c => c.charCodeAt(0)).buffer);
+  const raw = Uint8Array.from(atob(p.f), c => c.charCodeAt(0)).buffer;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(v, 3));
+  g.setIndex(new THREE.BufferAttribute(p.f32 ? new Uint32Array(raw) : new Uint16Array(raw), 1));
+  g.computeVertexNormals(); return g;
+}
+function buildClip(c) {
+  CLIP = c; world.clear(); bodies = []; sticks = []; arrows = [];
+  for (const name of SC.bodies) {
+    const grp = new THREE.Group();
+    for (const { g, mat } of meshGeoms[name] || []) { const m = new THREE.Mesh(g, MAT[mat] || MAT.plastic); m.castShadow = m.receiveShadow = true; grp.add(m); }
+    world.add(grp); bodies.push(grp);
+  }
+  const s = SC.stick, sg = new THREE.CylinderGeometry(s.r_tip, s.r_base, s.length, 20, 1); sg.rotateZ(-Math.PI / 2);
+  for (let i = 0; i < 2; i++) { const m = new THREE.Mesh(sg, MAT.stick); m.castShadow = m.receiveShadow = true; world.add(m); sticks.push(m); }
+  cube = null; target = null; trail = null;
+  if (c.stage === "pick") {
+    cube = new THREE.Mesh(new THREE.BoxGeometry(c.cube, c.cube, c.cube), MAT.cube.clone()); cube.castShadow = cube.receiveShadow = true; world.add(cube);
+    target = new THREE.Group();
+    const good = new THREE.MeshBasicMaterial({ color: new THREE.Color(css("--good")), side: THREE.DoubleSide });
+    target.add(new THREE.Mesh(new THREE.RingGeometry(0.0185, 0.02, 64), good), new THREE.Mesh(new THREE.CircleGeometry(0.0025, 24), good));
+    target.position.set(c.b[0], c.b[1], 0.0006); world.add(target);
+    const nb = SC.bodies.length + 2;
+    trail = new THREE.Line(new THREE.BufferGeometry().setFromPoints(c.frames.map(f => new THREE.Vector3(...f[nb].slice(0, 3)))),
+      new THREE.LineBasicMaterial({ color: 0x2a78d6, transparent: true, opacity: 0.5 })); world.add(trail);
+    for (let i = 0; i < 2; i++) { const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 0.03, 0x2a78d6, 0.008, 0.005); world.add(a); arrows.push(a); }
+  }
+  buildTimeline(); T = 0; playing = true; $("play").textContent = "Pause"; setView("side");
+}
+function setPose(o, p0, p1, a) {
+  o.position.set(p0[0] + (p1[0] - p0[0]) * a, p0[1] + (p1[1] - p0[1]) * a, p0[2] + (p1[2] - p0[2]) * a);
+  const q0 = new THREE.Quaternion(p0[3], p0[4], p0[5], p0[6]), q1 = new THREE.Quaternion(p1[3], p1[4], p1[5], p1[6]);
+  o.quaternion.copy(q0).slerp(q1, a);
+}
+function nSteps() { return CLIP.frames.length - 1; }
+function showFrame(t) {
+  const n = nSteps(), i = Math.min(Math.floor(t), n - 1), a = Math.min(1, t - i), f0 = CLIP.frames[i], f1 = CLIP.frames[i + 1], nb = bodies.length;
+  for (let k = 0; k < nb; k++) setPose(bodies[k], f0[k], f1[k], a);
+  setPose(sticks[0], f0[nb], f1[nb], a); setPose(sticks[1], f0[nb + 1], f1[nb + 1], a);
+  const info = CLIP.info[Math.min(i, CLIP.info.length - 1)];
+  if (cube) {
+    setPose(cube, f0[nb + 2], f1[nb + 2], a);
+    ["touch_upper", "touch_lower"].forEach((k, j) => {
+      const fN = info[k], arrow = arrows[j];
+      if (fN < 0.01) { arrow.visible = false; return; }
+      const s = sticks[j], axis = new THREE.Vector3(1, 0, 0).applyQuaternion(s.quaternion), rel = cube.position.clone().sub(s.position);
+      const p = s.position.clone().add(axis.multiplyScalar(rel.dot(axis))), dir = cube.position.clone().sub(p).normalize();
+      arrow.position.copy(p); arrow.setDirection(dir); arrow.setLength(Math.min(0.06, 0.01 + fN * 0.25), 0.008, 0.005); arrow.visible = true;
+    });
+    const pinched = info.both_touch > 0; cube.material.emissive.setHex(pinched ? 0x1d4f80 : 0); cube.material.emissiveIntensity = pinched ? 0.35 : 0;
+    if (follow) controls.target.lerp(cube.position, 0.15);
+  } else if (follow) controls.target.lerp(sticks[0].position.clone().add(sticks[1].position).multiplyScalar(0.5), 0.15);
+  hud(info, t);
+}
+function hud(info, t) {
+  const mm = v => (1000 * v).toFixed(1);
+  let rows;
+  if (CLIP.stage === "pick") {
+    const ph = PHASES[info.phase] || "";
+    $("hud").innerHTML = `<span class="ph">${ph}${info.open_cmd ? " · let go" : ""}</span><span>cube height ${mm(info.object_lift)} mm</span>
+      <span>sticks on cube: ${info.touch_upper > 0.01 ? "upper" : "–"} / ${info.touch_lower > 0.01 ? "lower" : "–"}</span>`;
+    rows = [["Phase", ph], ["Cube height", `${mm(info.object_lift)} mm`], ["Cube to B", `${mm(info.object_to_b)} mm`],
+      ["Upper stick on cube", `${info.touch_upper.toFixed(3)} N`], ["Lower stick on cube", `${info.touch_lower.toFixed(3)} N`],
+      ["Squeeze across cube", `${info.pinch.toFixed(3)} N`], ["Tip gap", `${mm(info.tip_gap)} mm`],
+      ["Stick slip upper / lower", `${mm(info.upper_drift)} / ${mm(info.lower_drift)} mm`], ["Return so far", info.ret.toFixed(0)]];
+  } else {
+    $("hud").innerHTML = `<span class="ph">holding</span><span>stick moved ${mm(info.drift)} mm · turned ${info.turn.toFixed(1)}°</span>`;
+    rows = [["Larger stick move", `${mm(info.drift)} mm`], ["Larger stick turn", `${info.turn.toFixed(1)}°`],
+      ["Within 1 cm / 10°", info.ok ? "yes" : "no"], ["Return so far", info.ret.toFixed(0)]];
+  }
+  $("stats").innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+  $("clock").textContent = `${(t * R.dt).toFixed(2)} s / ${(nSteps() * R.dt).toFixed(1)} s`;
+  $("t").value = t;
+}
+function buildTimeline() {
+  const total = nSteps(); $("t").max = total;
+  $("bands").innerHTML = CLIP.phase_steps ? CLIP.phase_steps.map((n, i) => `<div class="${HOLD_PHASES.has(PHASES[i]) ? "hold" : ""}" style="flex:${n}" title="${PHASES[i]}">${n >= 20 ? PHASES[i] : ""}</div>`).join("") : `<div style="flex:1">${CLIP.setup === "griplab" ? "gravity only · fingers fixed" : esc(R.setups[CLIP.setup]?.label || "hold")}</div>`;
+  $("marks").innerHTML = CLIP.info.map((inf, i) => inf.dropped ? `<span style="left:${i / total * 100}%;background:var(--critical);height:12px;top:-4px"></span>`
+    : (CLIP.stage === "pick" ? inf.both_touch > 0 : inf.ok > 0) ? `<span style="left:${i / total * 100}%;background:var(--good)"></span>` : "").join("");
+  const b = $("badge"); b.hidden = false;
+  b.textContent = "Result at the end: " + (CLIP.success ? "success" : CLIP.terminated ? "ended early" : "failed");
+  b.style.color = `var(${CLIP.success ? "--good" : "--critical"})`;
+}
+function setView(v) {
+  const f = CLIP.frames[0], nb = SC.bodies.length;
+  const mid = new THREE.Vector3(...f[nb].slice(0, 3)).add(new THREE.Vector3(...f[nb + 1].slice(0, 3))).multiplyScalar(0.5);
+  let focus = mid.clone(), dir = new THREE.Vector3(1, 0, 0);
+  if (CLIP.stage === "pick") { const c = new THREE.Vector3(...f[nb + 2].slice(0, 3)), b = new THREE.Vector3(CLIP.b[0], CLIP.b[1], 0);
+    focus = c.clone().add(b).multiplyScalar(0.5).setZ(0.05); dir = b.clone().sub(c).normalize(); }
+  const side = new THREE.Vector3(-dir.y, dir.x, 0);
+  if (v === "side") { controls.target.copy(focus); camera.position.copy(focus).addScaledVector(side, -0.5).add(new THREE.Vector3(0, 0, 0.22)); }
+  if (v === "close") { controls.target.copy(mid); camera.position.copy(mid).addScaledVector(side, -0.2).addScaledVector(dir, -0.08).add(new THREE.Vector3(0, 0, 0.08)); }
+  if (v === "top") { controls.target.copy(focus); camera.position.copy(focus).add(new THREE.Vector3(0.001, -0.02, 0.6)); }
+  key.target.position.copy(focus); key.position.copy(focus).add(new THREE.Vector3(0.35, -0.45, 0.9)); controls.update();
+}
+function fmtWhen(iso) {  // "2026-11-22T15:42:10-0500" -> "Sun 22 Nov, 15:42"
+  const d = new Date(iso.replace(/([+-]\d\d)(\d\d)$/, "$1:$2"));
+  return isNaN(d) ? iso : d.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+function renderClipList() {
+  if (!R) return;
+  const saved = c => R.entries.find(e => e.id === c.entry)?.saved || "";  // newest policy first, grip alone last
+  const list = R.clips.filter(c => c.setup === SETUP).sort((a, b) => saved(b).localeCompare(saved(a)) || (b.best ? 1 : 0) - (a.best ? 1 : 0)), lab = R.clips.filter(c => c.setup === "griplab");
+  const btn = c => { const e = R.entries.find(z => z.id === c.entry);
+    const st = c.success ? ["--good", c.setup === "griplab" ? "holds" : "success"] : c.terminated ? ["--critical", "ended early"] : ["--warn", "failed"];
+    return `<button class="b clip" data-id="${c.id}" aria-pressed="false"><span class="pill" style="--c:var(${st[0]})">${st[1]}</span>
+      <b style="font-size:13px">${esc(c.label || `${e?.label || c.entry} · seed ${c.seed}`)}</b><small>${c.setup === "griplab" ? "" : "test: <b>" + esc(R.setups[c.setup]?.label || c.setup) + "</b> · "}${c.best ? "best attempt of the test set · " : ""}${(c.length * R.dt).toFixed(1)} s</small>
+      <small class="when">${e?.saved ? "policy saved " + fmtWhen(e.saved) : c.setup === "griplab" ? "" : "no policy · recorded " + fmtWhen(R.generated)}</small></button>`; };
+  $("clips").innerHTML = (list.map(btn).join("") || `<span class="muted">No recordings for this setup.</span>`)
+    + (lab.length ? `<h3 style="margin-top:6px">Grip lab</h3>` + lab.map(btn).join("") : "");
+  const pref = list.find(c => c.best) || list[0];
+  if (pref && renderer3) loadClip(pref.id);
+}
+async function loadClip(id) {
+  document.querySelectorAll(".clip").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === id));
+  if (!clipCache[id]) { $("hud").innerHTML = `<span>loading…</span>`; clipCache[id] = await (await fetch(`data/clips/${id}.json`)).json(); }
+  if (SC) buildClip(clipCache[id]);
+}
+$("clips").addEventListener("click", e => { const b = e.target.closest(".clip"); if (b) loadClip(b.dataset.id); });
+$("play").addEventListener("click", () => { if (!CLIP) return; playing = !playing; $("play").textContent = playing ? "Pause" : "Play"; if (playing && T >= nSteps()) T = 0; });
+$("t").addEventListener("input", e => { T = +e.target.value; playing = false; $("play").textContent = "Play"; });
+document.querySelector(".speed").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; speed = +b.dataset.s;
+  document.querySelectorAll(".speed button").forEach(x => x.setAttribute("aria-pressed", x === b)); });
+document.querySelector(".views").addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !CLIP) return;
+  if (b.dataset.v === "follow") { follow = !follow; b.setAttribute("aria-pressed", follow); return; } setView(b.dataset.v); });
+function resize() { const r = $("stage").getBoundingClientRect(); renderer3.setSize(r.width, r.height, false); camera.aspect = r.width / r.height; camera.updateProjectionMatrix(); }
+let last = performance.now();
+function loop(now) {
+  const dt = Math.max(0, Math.min(0.1, (now - last) / 1000)); last = now;
+  if (CLIP) {
+    if (playing) { T += dt * speed / R.dt; if (T >= nSteps()) { T = nSteps(); playing = false; $("play").textContent = "Replay"; } }
+    showFrame(Math.max(0, Math.min(T, nSteps() - 1e-6)));
+  }
+  controls.update(); renderer3.render(scene3, camera); requestAnimationFrame(loop);
+}
+
+// ---------- pose overview: now training, pose toggle, best set, stages A to Z, settings
+let P = null, POSE = "pose2";
+const STAGE_N = { hold: 1, openclose: 2, pick: 3 };
+const inPose = id => P.runs[id] ? P.runs[id].poses.includes(POSE) : (curPose().setups || []).includes(id);
+const curPose = () => P.poses.find(p => p.id === POSE) || P.poses[0];
+const sci = v => v == null ? "–" : v < 1e-3 ? v.toExponential(0) : String(v);
+function setupKind(sid) {  // which stage a test setup belongs to
+  const s = R.setups[sid]; if (!s) return null;
+  if (s.stage === "pick" || /pick/.test(sid)) return "pick";
+  return /openclose/.test(sid) || /open\/close/i.test(s.label || "") ? "openclose" : "hold";
+}
+function setupOfRun(run, stage) {
+  if (R.setups[run] && setupKind(run) === stage) return run;
+  const mine = (R.entries.find(e => e.id === run)?.setups || []).filter(s => R.setups[s] && setupKind(s) === stage);
+  return mine.find(s => s !== "hold" && s !== "pick") || mine[0] || null;  // the stage's own test, not another stage's
+}
+function testOf(run, stage) { const s = setupOfRun(run, stage); return s && R.summaries[run]?.[s]?.success; }
+function clipOf(run, stage) { const s = setupOfRun(run, stage); return R.clips.find(c => c.entry === run && c.setup === s && c.best) || R.clips.find(c => c.entry === run && c.setup === s); }
+function statusText(r) {
+  const g = pct(r.gate);
+  if (r.status === "running") return [`--s1`, `training now · last check ${pct(r.last ?? 0)}`];
+  if (r.status === "stopped") return ["--neutral", "stopped by hand"];
+  if (r.status === "target") return ["--good", `reached its early-stop target`];
+  if (r.status === "plateau") return (r.best ?? 0) >= r.gate ? ["--good", `passed the ${g} gate, then levelled off`] : ["--warn", `levelled off below the ${g} gate`];
+  return ["--neutral", "used all its steps"];
+}
+function renderNow() {
+  const r = P.now && P.runs[P.now];
+  const when = `<span class="when">updated ${esc(fmtWhen(P.generated))}</span>`;
+  if (!r) { $("now").innerHTML = `<span class="live" style="--c:var(--neutral)">Idle</span><span>Nothing is training right now.</span>${when}`; return; }
+  const pose = P.poses.find(p => p.id === r.poses.at(-1)), st = pose?.stages.find(s => s.key === r.stage);
+  $("now").innerHTML = `<span class="live">Training now</span><b>${esc(pose?.short || "")} · stage ${STAGE_N[r.stage]}: ${esc(st?.name || r.stage)}</b>
+    <span class="kv">run <strong>${esc(r.id)}</strong></span><span class="kv">last check <strong>${pct(r.last ?? 0)}</strong></span>
+    <span class="kv">best <strong>${pct(r.best ?? 0)}</strong> of ${r.settings.eval_episodes}</span><span class="kv">gate <strong>${pct(r.gate)}</strong></span>
+    <span class="kv">${r.n_evals} checks · since ${esc(fmtWhen(r.start))}</span>${when}`;
+}
+function renderPoseToggle() {
+  $("pose-toggle").innerHTML = P.poses.map(p => {
+    const last = p.best_set.at(-1) ? P.runs[p.best_set.at(-1)] : null;
+    return `<button class="pose-btn" role="tab" id="pose-${p.id}" aria-selected="${p.id === POSE}" data-pose="${p.id}">
+      <small>${esc(p.short)}</small><b>${esc(p.name)}</b><span>${last ? `best pick ${pct(last.best ?? 0)}` : "no pick yet"}${p.stages.some(s => s.runs.includes(P.now)) ? " · training now" : ""}</span></button>`;
+  }).join("");
+}
+$("pose-toggle").addEventListener("click", e => { const b = e.target.closest(".pose-btn"); if (!b || b.dataset.pose === POSE) return; selectPose(b.dataset.pose); });
+function renderPose() {
+  const p = curPose(), best = p.best_set.map(id => P.runs[id]);
+  const hours = best.reduce((a, r) => a + (r?.hours || 0), 0), tried = p.stages.reduce((a, s) => a + s.runs.length, 0);
+  const stats = p.stages.map((s, i) => { const r = best[i]; const t = r && testOf(r.id, s.key);
+    return `<div class="best-stat"><span class="k">${i + 1} · ${esc(s.name)}</span><span class="v">${r ? pct(r.best ?? 0) : "–"}</span>
+      <span class="d">${r ? `best check of ${r.settings.eval_episodes} · ${esc(r.id)}` : "skipped in this pose"}</span>${t ? `<span class="d">page test ${t.k}/${t.n}</span>` : ""}</div>`; }).join("");
+  $("pose").innerHTML = `<figure><img src="${esc(p.image)}" alt="${esc(p.name)}: the grip closing on the 25 mm cube, front and side views" width="1120" height="420">
+      <figcaption>The grip alone (no policy) as it closes on the 25 mm cube. Left: front. Right: side.</figcaption></figure>
+    <div class="about"><p>${esc(p.desc)}</p>
+      <div class="best"><h3>Best training set</h3><div class="best-row">${stats}</div>
+        <div class="meta"><span>${hours.toFixed(1)} h of training in this set</span><span>${tried} runs tried in this pose</span><span>pick task: 25 mm cube</span></div></div></div>`;
+}
+function spark(runs, bestId) {
+  const W = 340, Hh = 128, L = 34, Rr = 62, T = 8, B = 18, w = W - L - Rr, h = Hh - T - B;
+  const maxS = Math.max(1, ...runs.map(r => r.evals.at(-1)?.[0] || 0));
+  const x = s => L + w * s / maxS, y = v => T + h * (1 - v);
+  let g = [0, .5, 1].map(v => `<g class="grid"><line x1="${L}" x2="${L + w}" y1="${y(v)}" y2="${y(v)}"/></g><text x="${L - 5}" y="${y(v) + 3.5}" text-anchor="end">${pct(v)}</text>`).join("");
+  const gates = [...new Set(runs.map(r => r.gate))].sort((a, b) => b - a);  // labels stacked so two close gates don't overlap
+  gates.forEach((gate, k) => g += `<line x1="${L}" x2="${L + w}" y1="${y(gate)}" y2="${y(gate)}" stroke="var(--fg)" stroke-dasharray="3 3" opacity=".5"/>
+    <text x="${L + w + 4}" y="${y(gate) + (gates.length > 1 ? (k ? 11 : -3) : 3.5)}">gate ${pct(gate)}</text>`);
+  const order = runs.slice().sort((a, b) => (a.id === bestId) - (b.id === bestId));  // best drawn last, on top
+  for (const r of order) {
+    if (!r.evals.length) continue;
+    const isB = r.id === bestId, col = isB ? "var(--s1)" : "var(--neutral)", end = r.evals.at(-1);
+    g += `<path d="${svgLine(r.evals.map(p => [x(p[0]), y(p[1])]))}" fill="none" stroke="${col}" stroke-width="${isB ? 2 : 1.2}" opacity="${isB ? 1 : .8}"/>
+      <circle cx="${x(end[0])}" cy="${y(end[1])}" r="${isB ? 4 : 3}" fill="${col}" stroke="var(--panel)" stroke-width="1.5"
+        data-tip="<b>${esc(r.id)}</b><br>best check ${pct(r.best ?? 0)} · last ${pct(r.last ?? 0)}<br>${r.n_evals} checks · ${(r.steps / 1e6).toFixed(1)}M steps"/>`;
+  }
+  g += `<text x="${L}" y="${Hh - 4}">0</text><text x="${L + w}" y="${Hh - 4}" text-anchor="end">${(maxS / 1e6).toFixed(1)}M steps</text>`;
+  return `<svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="Check success over training, all runs of this stage">${g}</svg>`;
+}
+function renderFlow() {
+  const p = curPose();
+  $("flow").innerHTML = p.stages.map((s, i) => {
+    const bestId = p.best_set[i], b = P.runs[bestId], runs = s.runs.map(id => P.runs[id]).filter(Boolean);
+    const t = b && testOf(b.id, s.key), clip = b && clipOf(b.id, s.key);
+    const list = runs.slice().reverse().map(r => { const [c, txt] = statusText(r);
+      return `<div class="run"><span class="id${r.id === bestId ? " is-best" : ""}">${esc(r.id)}</span><span class="num">${r.best == null ? "–" : pct(r.best)}</span>
+        <span class="why"><span class="pill" style="--c:var(${c})">${esc(txt)}</span>${r.from ? ` · from ${esc(r.from)}` : " · from scratch"} · ${r.hours.toFixed(1)} h${r.note ? `<br>${esc(r.note)}` : ""}</span></div>`; }).join("");
+    const shared = P.poses.filter(q => q.id !== p.id && q.stages[i].runs.length && q.stages[i].runs.every(id => s.runs.includes(id))).map(q => q.short);
+    return `<li class="panel"><div class="st-head"><span class="n">Stage ${i + 1}${shared.length ? ` · shared with ${esc(shared.join(", "))}` : ""}</span><h3>${esc(s.name)}</h3><p>${esc(s.what)}</p></div>
+      ${b ? `<div class="st-best"><span class="v">${pct(b.best ?? 0)}</span><span class="d">best check (${b.settings.eval_episodes} episodes) · ${esc(b.id)}</span>
+        <span class="d">${t ? `page test ${t.k}/${t.n} (${pct(t.p)})` : "no page test yet"}</span></div>` : `<p class="muted">${runs.length ? "No run passed yet." : "Skipped: this pose went straight to picking."}</p>`}
+      ${runs.length ? `<div class="spark">${spark(runs, bestId)}</div>` : ""}
+      ${clip ? `<button class="b watch" data-clip="${clip.id}" data-setup="${clip.setup}">Watch the best attempt in 3D</button>` : ""}
+      <div class="runs"><h3 style="margin-bottom:4px">${runs.length} run${runs.length === 1 ? "" : "s"}, newest first</h3>${list}</div></li>`;
+  }).join("");
+}
+$("flow").addEventListener("click", e => {
+  const b = e.target.closest(".watch"); if (!b) return;
+  SETUP = b.dataset.setup; renderSetup(); loadClip(b.dataset.clip);
+  document.querySelector('[aria-labelledby="h-replay"]').scrollIntoView({ behavior: "smooth", block: "start" });
+});
+function renderSettings() {
+  const p = curPose(), cols = p.best_set.map(id => P.runs[id]);
+  if (!cols.length) { $("settings").innerHTML = `<tbody><tr><td>No complete training set yet.</td></tr></tbody>`; return; }
+  const row = (k, f) => `<tr><td>${k}</td>${cols.map(r => `<td class="v">${r ? f(r, r.settings) : "–"}</td>`).join("")}</tr>`;
+  $("settings").innerHTML = `<thead><tr><th>Setting</th>${p.stages.map((s, i) => `<th>${i + 1} · ${esc(s.name)}<small>${esc(cols[i]?.id || "")}</small></th>`).join("")}</tr></thead><tbody>
+    ${row("Learning rate", (r, s) => `${sci(s.lr)} start<br>adapts ${sci(s.lr_min)} – ${sci(s.lr_max)}`)}
+    ${row("Batch per update", (r, s) => `${s.rollout} steps × ${s.envs} envs = ${s.batch.toLocaleString("en")}`)}
+    ${row("Epochs × minibatches", (r, s) => `${s.epochs} × ${s.minibatches}`)}
+    ${row("KL target · clip", (r, s) => `${s.desired_kl} · ${s.clip}`)}
+    ${row("Entropy bonus", (r, s) => `${s.entropy}`)}
+    ${row("Finger range", (r, s) => `±${s.finger_range} rad`)}
+    ${row("Hand-stick contacts", (r, s) => `solref ${s.solref}${s.solref < 0.02 ? " (stiffer)" : ""}`)}
+    ${row("Starts from", r => esc(r.from || "scratch"))}
+    ${row("Checks", (r, s) => `${s.eval_episodes} episodes every ${s.eval_every} updates`)}
+    ${row("Stops when", (r, s) => `≥${pct(s.target)} on 3 checks, or ${s.plateau} checks without a new best`)}
+    ${row("Disturbances", (r, s) => s.wobble ? `pushes ${s.pushes} N, wobble ±${s.wobble}°, shake ${s.shake} m/s²` : s.pushes != null ? `pushes ${s.pushes} N` : "–")}
+    ${row("Grip", (r, s) => esc(s.grip_closed ? `${s.grip} → ${s.grip_closed}` : s.grip || "–"))}
+    ${row("Trained for", r => `${(r.steps / 1e6).toFixed(1)}M steps · ${r.hours.toFixed(1)} h`)}</tbody>`;
+}
+function selectPose(id) {
+  POSE = id; try { localStorage.setItem("chopstix-pose", id); } catch {}
+  renderPoseToggle(); renderPose(); renderFlow(); renderSettings(); renderCards(); renderTraining();
+  if (!curPose().setups.includes(SETUP)) SETUP = defaultSetup();
+  renderSetup();
+}
+function defaultSetup() {
+  const p = curPose(), pick = p.best_set.at(-1), s = pick && setupOfRun(pick, "pick");
+  return s && R.setups[s] ? s : curPose().setups.find(k => R.setups[k]) || Object.keys(R.setups)[0];
+}
+
+// ---------- boot
+(async () => {
+  try {
+    [R, H, P] = await Promise.all([fetch("data/results.json").then(r => r.json()), fetch("data/history.json").then(r => r.json()).catch(() => []),
+      fetch("data/poses.json").then(r => r.json())]);
+  } catch (err) {
+    $("now").innerHTML = `<span>Results could not load (${esc(err.message)}). Run <code>python -m chopstix.tools.poses</code> and the report, then publish again.</span>`; return;
+  }
+  let savedPose = null; try { savedPose = localStorage.getItem("chopstix-pose"); } catch {}
+  POSE = P.poses.some(p => p.id === savedPose) ? savedPose : (P.now ? P.runs[P.now].poses.at(-1) : P.poses.at(-1).id);
+  let saved = null; try { saved = localStorage.getItem("chopstix-setup"); } catch {}
+  SETUP = R.setups[saved] && curPose().setups.includes(saved) ? saved : defaultSetup();
+  renderHeader(); renderNow(); renderPoseToggle(); renderPose(); renderFlow(); renderSettings();
+  renderGripLab(); renderHistory(); renderCards(); renderTraining(); renderGrip();
+  const ok = initStage();
+  renderSetup();
+  if (!ok) return;
+  mats();
+  SC = await (await fetch("data/scene.json")).json();
+  for (const [link, parts] of Object.entries(SC.meshes)) meshGeoms[link] = parts.map(p => ({ g: geomFrom(p), mat: p.mat }));
+  const pending = document.querySelector('.clip[aria-pressed="true"]')?.dataset.id || R.clips.find(c => c.setup === SETUP)?.id;
+  if (pending) await loadClip(pending);
+  resize(); requestAnimationFrame(loop);
+})();
+// the episode list is as tall as the 3D view and scrolls inside itself (side by side only; stacked it gets a fixed max height)
+(() => {
+  const stage = document.getElementById('stage'), side = document.querySelector('.replay .side');
+  const wide = window.matchMedia('(min-width: 901px)');
+  const fit = () => { side.style.height = wide.matches ? stage.offsetHeight + 'px' : ''; };
+  new ResizeObserver(fit).observe(stage);
+  wide.addEventListener('change', fit);
+  fit();
+  // keep the selected episode in view when it changes
+  const list = document.getElementById('clips');
+  new MutationObserver(() => {  // scroll only the list, never the page
+    const el = list.querySelector('.clip[aria-pressed="true"]');
+    if (!el) return;
+    if (el.offsetTop < list.scrollTop) list.scrollTop = el.offsetTop - 4;
+    else if (el.offsetTop + el.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = el.offsetTop + el.offsetHeight - list.clientHeight + 4;
+  }).observe(list, { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
+})();
+</script>
